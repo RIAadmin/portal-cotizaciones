@@ -172,7 +172,7 @@ export default function DashboardPage() {
                     <tr key={q.id} style={{ background: rowBg }}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {isOld && <AlertTriangle size={16} color="#dd6b20" title="Requiere seguimiento (>10 días)" />}
+                          {isOld && <AlertTriangle size={16} color="#dd6b20" />}
                           <Link href={`/cotizaciones/${q.folio}`} style={{ fontWeight: '700', color: 'var(--primary)' }}>
                             {q.folio}
                           </Link>
