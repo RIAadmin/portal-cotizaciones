@@ -38,9 +38,28 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--secondary)' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '24px', color: 'var(--primary)' }}>Registro</h1>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #002366 0%, #FFFFFF 100%)' 
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ 
+            width: '100%', 
+            margin: '0 auto 20px', 
+            background: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 'var(--radius)'
+          }}>
+            <img src="/logo.png" alt="Logo" style={{ maxWidth: '200px', height: 'auto' }} />
+          </div>
+          <h1 style={{ fontSize: '1.5rem', color: '#002366' }}>Registro</h1>
+        </div>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Nombre completo</label>
