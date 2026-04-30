@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const [filteredQuotations, setFilteredQuotations] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('');
 
   const fetchQuotations = async () => {
     try {
@@ -29,6 +30,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchQuotations();
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(session => {
+        if (session?.user?.name) {
+          setUserName(session.user.name);
+        }
+      })
+      .catch(err => console.error("Error fetching session:", err));
   }, []);
 
   useEffect(() => {
@@ -69,6 +78,11 @@ export default function DashboardPage() {
               <span style={{ fontSize: '1.4rem', fontWeight: '400', color: 'var(--text-muted)' }}>
                 Portal de Cotizaciones
               </span>
+              {userName && (
+                <div style={{ fontSize: '1.1rem', fontWeight: '500', color: 'var(--primary)', marginTop: '10px' }}>
+                  👋 ¡Bienvenido, {userName}!
+                </div>
+              )}
             </h1>
           </div>
           <Link href="/cotizaciones/nueva" className="btn btn-primary">
