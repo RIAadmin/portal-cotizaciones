@@ -24,9 +24,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid client" }, { status: 400 });
     }
 
-    const count = await prisma.quotation.count();
+    const lastQuotation = await prisma.quotation.findFirst({
+      orderBy: { id: 'desc' }
+    });
+    
+    let nextNumber = 1;
+    if (lastQuotation && lastQuotation.folio) {
+      const parts = lastQuotation.folio.split('-');
+      if (parts.length === 3 && !isNaN(parseInt(parts[2]))) {
+        nextNumber = parseInt(parts[2]) + 1;
+      } else {
+        const count = await prisma.quotation.count();
+        nextNumber = count + 1;
+      }
+    }
+    
     const year = new Date().getFullYear();
-    const folio = `COT-${year}-${(count + 1).toString().padStart(4, "0")}`;
+    const folio = `COT-${year}-${nextNumber.toString().padStart(4, "0")}`;
 
     const userId = parseInt((session.user as any).id);
 
