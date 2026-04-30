@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     if (!email.endsWith("@riaindustrial.com.mx")) {
-      return NextResponse.json({ message: "Solo se permiten correos corporativos (@riaindustrial.com.mx)" }, { status: 403 });
+      return NextResponse.json({ message: "No se pudo registrar la cuenta. Contacte al administrador." }, { status: 403 });
     }
 
     const exists = await prisma.user.findUnique({
