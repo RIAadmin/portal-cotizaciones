@@ -80,7 +80,7 @@ export default function DashboardPage() {
               </span>
               {userName && (
                 <div style={{ fontSize: '1.1rem', fontWeight: '500', color: 'var(--primary)', marginTop: '10px' }}>
-                  👋 ¡Bienvenido, {userName}!
+                  ¡Bienvenido, {userName}!
                 </div>
               )}
             </h1>
