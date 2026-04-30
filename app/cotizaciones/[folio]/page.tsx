@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
-import { FileText, ShoppingCart, Receipt } from 'lucide-react';
+import { FileText, ShoppingCart, Receipt, Eye } from 'lucide-react';
 import DocumentUploader from '@/components/DocumentUploader';
 import PaymentManagement from '@/components/PaymentManagement';
 
@@ -74,9 +74,11 @@ export default async function QuotationDetailPage({ params }: PageProps) {
                 <ShoppingCart size={20} /> Orden de Compra (OC)
               </h3>
               {ocFile ? (
-                <div style={{ padding: '12px', background: 'var(--secondary)', borderRadius: 'var(--radius)', color: 'var(--primary)', fontWeight: '600' }}>
-                  OC Subida: {ocFile.filename}
-                  <a href={`/api/files/${ocFile.id}`} target="_blank" style={{ display: 'block', marginTop: '8px', fontSize: '0.875rem' }}>Ver Archivo</a>
+                <div style={{ padding: '12px', background: 'var(--secondary)', borderRadius: 'var(--radius)', color: 'var(--primary)', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>OC Subida: {ocFile.filename}</span>
+                  <a href={`/api/files/${ocFile.id}`} target="_blank" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.5)', padding: '5px 10px', borderRadius: '5px' }}>
+                    <Eye size={18} /> Ver
+                  </a>
                 </div>
               ) : (
                 <DocumentUploader 
@@ -94,8 +96,11 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {invoicePdf ? (
-                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem' }}>
-                    PDF Factura: {invoicePdf.filename}
+                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>PDF Factura: {invoicePdf.filename}</span>
+                    <a href={`/api/files/${invoicePdf.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver PDF">
+                      <Eye size={18} />
+                    </a>
                   </div>
                 ) : (
                   <DocumentUploader 
@@ -107,8 +112,11 @@ export default async function QuotationDetailPage({ params }: PageProps) {
                 )}
 
                 {invoiceXml ? (
-                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem' }}>
-                    XML Factura: {invoiceXml.filename}
+                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>XML Factura: {invoiceXml.filename}</span>
+                    <a href={`/api/files/${invoiceXml.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver XML">
+                      <Eye size={18} />
+                    </a>
                   </div>
                 ) : (
                   <DocumentUploader 
