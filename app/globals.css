@@ -230,3 +230,74 @@ td {
 .badge-oc-uploaded { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
 .badge-finished { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 .badge-invoiced { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 15px;
+    z-index: 10;
+  }
+  
+  .main-content {
+    padding: 20px;
+  }
+  
+  /* Stack stats cards in dashboard */
+  div[style*="gridTemplateColumns: repeat(3, 1fr)"],
+  div[style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Stack quotation details layout */
+  div[style*="gridTemplateColumns: 1fr 400px"],
+  div[style*="grid-template-columns: 1fr 400px"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Make header title smaller on mobile */
+  h1[style*="fontSize: 2.2rem"],
+  h1[style*="font-size: 2.2rem"] {
+    font-size: 1.5rem !important;
+  }
+  
+  h1 span[style*="fontSize: 1.4rem"],
+  h1 span[style*="font-size: 1.4rem"] {
+    font-size: 1.1rem !important;
+  }
+  
+  /* Wrap header buttons if needed */
+  header[style*="display: flex"] {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+  
+  /* Make table scrollable horizontally */
+  .card {
+    overflow-x: auto;
+    padding: 20px;
+  }
+  
+  .dashboard-table {
+    min-width: 800px; /* Force scroll on small screens */
+  }
+  
+  /* Search input layout adjustment */
+  div[style*="display: flex; justify-content: space-between"] {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 15px;
+  }
+  
+  div[style*="maxWidth: 500px"] {
+    max-width: 100% !important;
+  }
+}
