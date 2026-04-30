@@ -43,18 +43,13 @@ export async function POST(req: Request) {
 
     if (file && file.size > 0) {
       const buffer = Buffer.from(await file.arrayBuffer());
+      const base64Data = buffer.toString('base64');
       const filename = `${folio}_${Date.now()}.pdf`;
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "quotations");
-      
-      await mkdir(uploadDir, { recursive: true });
-      
-      const filePath = path.join(uploadDir, filename);
-      await writeFile(filePath, buffer);
 
       await prisma.quotationFile.create({
         data: {
           type: "QUOTATION",
-          path: `/uploads/quotations/${filename}`,
+          data: base64Data,
           filename,
           quotationId: quotation.id,
         }

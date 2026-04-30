@@ -1,4 +1,4 @@
-﻿import Sidebar from '@/components/Sidebar';
+import Sidebar from '@/components/Sidebar';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -57,7 +57,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
             </h2>
             {quotationFile ? (
               <iframe 
-                src={quotationFile.path} 
+                src={`/api/files/${quotationFile.id}`} 
                 style={{ width: '100%', height: '700px', border: 'none', borderRadius: 'var(--radius)' }}
                 title="Quotation PDF"
               />
@@ -76,7 +76,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               {ocFile ? (
                 <div style={{ padding: '12px', background: 'var(--secondary)', borderRadius: 'var(--radius)', color: 'var(--primary)', fontWeight: '600' }}>
                   OC Subida: {ocFile.filename}
-                  <a href={ocFile.path} target="_blank" style={{ display: 'block', marginTop: '8px', fontSize: '0.875rem' }}>Ver Archivo</a>
+                  <a href={`/api/files/${ocFile.id}`} target="_blank" style={{ display: 'block', marginTop: '8px', fontSize: '0.875rem' }}>Ver Archivo</a>
                 </div>
               ) : (
                 <DocumentUploader 

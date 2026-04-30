@@ -62,7 +62,8 @@ enum FileType {
 model QuotationFile {
   id          Int       @id @default(autoincrement())
   type        FileType
-  path        String
+  path        String?
+  data        String?   @db.LongText
   filename    String
   quotation   Quotation @relation(fields: [quotationId], references: [id])
   quotationId Int

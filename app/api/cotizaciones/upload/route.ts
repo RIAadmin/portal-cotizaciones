@@ -19,17 +19,14 @@ export async function POST(req: Request) {
     if (!quotation) return NextResponse.json({ message: "No encontrado" }, { status: 404 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const folder = type === 'OC' ? 'oc' : 'invoices';
+    const base64Data = buffer.toString('base64');
     const ext = path.extname(file.name);
     const filename = `${quotation.folio}_${type}_${Date.now()}${ext}`;
-    const filePath = path.join(process.cwd(), "public", "uploads", folder, filename);
     
-    await writeFile(filePath, buffer);
-
     await prisma.quotationFile.create({
       data: {
         type,
-        path: `/uploads/${folder}/${filename}`,
+        data: base64Data,
         filename,
         quotationId,
       }
