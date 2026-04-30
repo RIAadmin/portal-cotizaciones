@@ -72,14 +72,17 @@ export default function RegisterPage() {
             />
           </div>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Email</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Email Corporativo</label>
             <input 
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required 
-              placeholder="correo@ejemplo.com"
+              placeholder="tu_nombre@riaindustrial.com.mx"
+              pattern=".*@riaindustrial\.com\.mx$"
+              title="Debe ser un correo con terminación @riaindustrial.com.mx"
             />
+            <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>Solo personal de la empresa (@riaindustrial.com.mx)</small>
           </div>
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Contraseña</label>

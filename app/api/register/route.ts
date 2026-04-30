@@ -10,6 +10,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Faltan datos obligatorios" }, { status: 400 });
     }
 
+    if (!email.endsWith("@riaindustrial.com.mx")) {
+      return NextResponse.json({ message: "Solo se permiten correos corporativos (@riaindustrial.com.mx)" }, { status: 403 });
+    }
+
     const exists = await prisma.user.findUnique({
       where: { email }
     });
