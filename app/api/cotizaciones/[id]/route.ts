@@ -20,14 +20,7 @@ export async function DELETE(
       where: { quotationId: id }
     });
 
-    for (const file of files) {
-      try {
-        const filePath = path.join(process.cwd(), "public", file.path);
-        await unlink(filePath);
-      } catch (err) {
-        console.error("Error deleting file", err);
-      }
-    }
+    // Archivos ahora están en la BD, no necesitamos borrarlos del disco físico
 
     await prisma.quotationFile.deleteMany({
       where: { quotationId: id }
