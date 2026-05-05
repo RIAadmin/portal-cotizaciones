@@ -24,22 +24,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid client" }, { status: 400 });
     }
 
-    const lastQuotation = await prisma.quotation.findFirst({
-      orderBy: { id: 'desc' }
-    });
-    
-    let nextNumber = 1;
-    if (lastQuotation && lastQuotation.folio) {
-      const parts = lastQuotation.folio.split('-');
-      if (parts.length === 3 && !isNaN(parseInt(parts[2]))) {
-        nextNumber = parseInt(parts[2]) + 1;
-      } else {
-        const count = await prisma.quotation.count();
-        nextNumber = count + 1;
-      }
-    }
-    
     const year = new Date().getFullYear();
+    
+    // Find the highest folio number for this year to avoid duplicates
+    const quotationsThisYear = await prisma.quotation.findMany({
+      where: {
+        folio: {
+          startsWith: `COT-${year}-`
+        }
+      },
+      select: { folio: true }
+    });
+
+    let nextNumber = 1;
+    if (quotationsThisYear.length > 0) {
+      const numbers = quotationsThisYear.map(q => {
+        const parts = q.folio.split('-');
+        return parseInt(parts[2]) || 0;
+      });
+      nextNumber = Math.max(...numbers) + 1;
+    }
+
     const folio = `COT-${year}-${nextNumber.toString().padStart(4, "0")}`;
 
     const userIdStr = (session.user as any).id;

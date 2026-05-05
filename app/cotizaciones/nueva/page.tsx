@@ -53,7 +53,7 @@ export default function NewQuotationPage() {
         }, 2000);
       } else {
         const errData = await res.json();
-        alert(errData.message || "Error al crear la cotización");
+        alert(`${errData.message}\nDetalles: ${errData.details || 'Sin detalles'}`);
       }
     } catch (err) {
       console.error(err);
