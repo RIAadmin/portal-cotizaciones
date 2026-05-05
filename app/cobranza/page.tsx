@@ -3,7 +3,9 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { DollarSign, Wallet, ArrowDownCircle } from 'lucide-react';
+import { DollarSign, Wallet, ArrowDownCircle, AlertCircle } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function CobranzaPage() {
   const session = await getServerSession(authOptions);
@@ -19,6 +21,7 @@ export default async function CobranzaPage() {
         {
           OR: [
             { status: 'OC_UPLOADED' },
+            { status: 'ANTICIPO' },
             { status: 'INVOICED' }
           ]
         },
@@ -39,10 +42,12 @@ export default async function CobranzaPage() {
   }> = {};
 
   quotations.forEach(q => {
+    if (!q.client) return; // Safety check
+
     const clientId = q.clientId.toString();
     if (!collectionByClient[clientId]) {
       collectionByClient[clientId] = {
-        company: q.client.company,
+        company: q.client.company || 'Cliente sin nombre',
         totalProjects: 0,
         totalAdvances: 0,
         totalPending: 0,
