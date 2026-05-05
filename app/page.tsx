@@ -175,7 +175,11 @@ export default function DashboardPage() {
                   let badgeClass = q.status.toLowerCase().replace('_', '-');
                   const isOld = isOldPending(q);
 
-                  if (q.isPaid) {
+                  if (q.progress === 100 && !q.isPaid) {
+                    statusText = 'PENDIENTE DE PAGO';
+                    badgeClass = 'pending-payment';
+                    rowBg = '#fff5f5'; // Reddish background
+                  } else if (q.isPaid) {
                     rowBg = '#e6fffa';
                     statusText = 'PAGADO';
                     badgeClass = 'finished';

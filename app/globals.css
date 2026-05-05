@@ -231,6 +231,7 @@ td {
 .badge-finished { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 .badge-invoiced { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 .badge-warning { background: #fff5f0; color: #dd6b20; border: 1px solid #fbd38d; }
+.badge-pending-payment { background: #dc3545; color: white; border: 1px solid #c53030; }
 
 /* Progress Bar Styling */
 .progress-container {

@@ -72,13 +72,13 @@ export default async function QuotationDetailPage({ params }: PageProps) {
                 }}></div>
               </div>
             </div>
-            <span className={`badge badge-${quotation.isPaid ? 'finished' : quotation.status === 'ANTICIPO' ? 'warning' : quotation.status.toLowerCase().replace('_', '-')}`} style={{ 
+            <span className={`badge badge-${quotation.progress === 100 && !quotation.isPaid ? 'pending-payment' : quotation.isPaid ? 'finished' : quotation.status === 'ANTICIPO' ? 'warning' : quotation.status.toLowerCase().replace('_', '-')}`} style={{ 
               fontSize: '1rem', 
               padding: '8px 16px',
-              background: quotation.isPaid ? '#28a745' : quotation.status === 'ANTICIPO' ? '#f6ad55' : undefined,
-              color: quotation.isPaid || quotation.status === 'ANTICIPO' ? 'white' : undefined
+              background: quotation.progress === 100 && !quotation.isPaid ? '#dc3545' : quotation.isPaid ? '#28a745' : quotation.status === 'ANTICIPO' ? '#f6ad55' : undefined,
+              color: quotation.progress === 100 && !quotation.isPaid || quotation.isPaid || quotation.status === 'ANTICIPO' ? 'white' : undefined
             }}>
-              {quotation.isPaid ? 'PAGADO' : statusMap[quotation.status]}
+              {quotation.progress === 100 && !quotation.isPaid ? 'PENDIENTE DE PAGO' : quotation.isPaid ? 'PAGADO' : statusMap[quotation.status]}
             </span>
           </div>
         </div>

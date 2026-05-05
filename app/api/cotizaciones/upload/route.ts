@@ -36,11 +36,7 @@ export async function POST(req: Request) {
     let newStatus = quotation.status;
     if (type === 'OC') newStatus = 'OC_UPLOADED';
     if (type === 'INVOICE_PDF' || type === 'INVOICE_XML') {
-      const otherType = type === 'INVOICE_PDF' ? 'INVOICE_XML' : 'INVOICE_PDF';
-      const hasOther = await prisma.quotationFile.findFirst({
-        where: { quotationId, type: otherType }
-      });
-      if (hasOther) newStatus = 'INVOICED';
+      newStatus = 'INVOICED';
     }
 
     await prisma.quotation.update({
