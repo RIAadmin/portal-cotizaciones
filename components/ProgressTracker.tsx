@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, User, MessageSquare, Send } from 'lucide-react';
+import { Calendar, User, MessageSquare, Send, Trash2 } from 'lucide-react';
 
 interface Props {
   quotationId: number;
@@ -31,6 +31,28 @@ export default function ProgressTracker({ quotationId, currentProgress, updates 
         router.refresh();
       } else {
         alert("Error al actualizar el avance");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (updateId: number) => {
+    if (!confirm("¿Estás seguro de eliminar esta actualización? El porcentaje de avance del proyecto se ajustará al estado anterior.")) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/progress/${updateId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        alert("Error al eliminar la actualización");
       }
     } catch (err) {
       console.error(err);
@@ -125,6 +147,23 @@ export default function ProgressTracker({ quotationId, currentProgress, updates 
                       <User size={14} />
                       {update.user?.name || 'Usuario'}
                     </span>
+                    <button 
+                      onClick={() => handleDelete(update.id)}
+                      style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#dc3545', 
+                        cursor: 'pointer', 
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        opacity: loading ? 0.5 : 1
+                      }}
+                      title="Eliminar avance"
+                      disabled={loading}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
                 {update.notes && (
