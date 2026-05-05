@@ -42,7 +42,13 @@ export async function POST(req: Request) {
     const year = new Date().getFullYear();
     const folio = `COT-${year}-${nextNumber.toString().padStart(4, "0")}`;
 
-    const userId = parseInt((session.user as any).id);
+    const userIdStr = (session.user as any).id;
+    const userId = userIdStr ? parseInt(userIdStr) : NaN;
+
+    if (isNaN(userId)) {
+      console.error("CREATE QUOTATION ERROR: No valid User ID in session", session.user);
+      return NextResponse.json({ message: "Error de sesión: Usuario no identificado" }, { status: 401 });
+    }
 
     const quotation = await prisma.quotation.create({
       data: {
@@ -52,27 +58,39 @@ export async function POST(req: Request) {
         clientId,
         userId: userId,
         status: status as any,
+        progress: 0,
+        isPaid: false
       }
     });
 
-    if (file && file.size > 0) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const base64Data = buffer.toString('base64');
-      const filename = `${folio}_${Date.now()}.pdf`;
+    console.log("QUOTATION CREATED SUCCESSFULLY:", quotation.folio);
 
-      await prisma.quotationFile.create({
-        data: {
-          type: "QUOTATION",
-          data: base64Data,
-          filename,
-          quotationId: quotation.id,
-        }
-      });
+    if (file && file.size > 0) {
+      try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const base64Data = buffer.toString('base64');
+        const filename = `${folio}_${Date.now()}.pdf`;
+
+        await prisma.quotationFile.create({
+          data: {
+            type: "QUOTATION",
+            data: base64Data,
+            filename,
+            quotationId: quotation.id,
+          }
+        });
+      } catch (fileError) {
+        console.error("ERROR SAVING FILE:", fileError);
+        // We still created the quotation, maybe return a warning?
+      }
     }
 
     return NextResponse.json(quotation, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("ERROR CREATING QUOTATION:", error);
-    return NextResponse.json({ message: "Internal error creating quotation" }, { status: 500 });
+    return NextResponse.json({ 
+      message: "Error interno al crear la cotización", 
+      details: error.message 
+    }, { status: 500 });
   }
 }
