@@ -13,6 +13,7 @@ model User {
   password  String
   name      String?
   quotations Quotation[]
+  updates    QuotationUpdate[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -31,6 +32,7 @@ enum QuotationStatus {
   PENDING
   OC_UPLOADED
   INVOICED
+  ANTICIPO
   CANCELLED
 }
 
@@ -43,13 +45,36 @@ model Quotation {
   advance     Decimal         @default(0) @db.Decimal(10, 2)
   isPaid      Boolean         @default(false)
   paidAt      DateTime?
+  progress    Int             @default(0)
   client      Client          @relation(fields: [clientId], references: [id])
   clientId    Int
   user        User            @relation(fields: [userId], references: [id])
   userId      Int
   files       QuotationFile[]
+  updates     QuotationUpdate[]
+  payments    Payment[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+model QuotationUpdate {
+  id          Int       @id @default(autoincrement())
+  percentage  Int
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  quotationId Int
+}
+
+model Payment {
+  id          Int       @id @default(autoincrement())
+  amount      Decimal   @db.Decimal(10, 2)
+  date        DateTime
+  createdAt   DateTime  @default(now())
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  quotationId Int
 }
 
 enum FileType {

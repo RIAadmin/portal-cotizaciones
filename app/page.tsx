@@ -116,7 +116,7 @@ export default function DashboardPage() {
               <CheckCircle size={30} />
             </div>
             <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Terminados</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pagados</p>
               <h3 style={{ fontSize: '1.8rem' }}>{finishedCount}</h3>
             </div>
           </div>
@@ -152,41 +152,45 @@ export default function DashboardPage() {
                 <th>Fecha</th>
                 <th>Cliente</th>
                 <th>Descripción</th>
+                <th>Avance</th>
                 <th>Estado</th>
                 <th style={{ textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>Cargando cotizaciones...</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Cargando cotizaciones...</td></tr>
               ) : filteredQuotations.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>
                     {searchTerm ? `No se encontraron resultados para "${searchTerm}"` : 'No hay cotizaciones registradas aún.'}
                   </td>
                 </tr>
               ) : (
                 filteredQuotations.map((q) => {
                   let rowBg = 'transparent';
-                  let statusText = q.status === 'PENDING' ? 'Pendiente' : q.status === 'OC_UPLOADED' ? 'Con OC' : 'Facturada';
+                  let statusText = q.status === 'PENDING' ? 'Pendiente' : q.status === 'OC_UPLOADED' ? 'Con OC' : q.status === 'ANTICIPO' ? 'Anticipo' : 'Facturada';
                   let badgeClass = q.status.toLowerCase().replace('_', '-');
                   const isOld = isOldPending(q);
 
                   if (q.isPaid) {
                     rowBg = '#e6fffa';
-                    statusText = 'TERMINADO';
+                    statusText = 'PAGADO';
                     badgeClass = 'finished';
+                  } else if (q.status === 'ANTICIPO') {
+                    rowBg = '#fffaf0';
+                    badgeClass = 'warning';
                   } else if (q.status === 'OC_UPLOADED' || q.status === 'INVOICED') {
                     rowBg = '#f0f7ff';
                   } else if (isOld) {
-                    rowBg = '#fffaf0';
+                    rowBg = '#fff5f5';
                   }
 
                   return (
                     <tr key={q.id} style={{ background: rowBg }}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {isOld && <AlertTriangle size={16} color="#dd6b20" />}
+                          {isOld && <AlertTriangle size={16} color="#e53e3e" />}
                           <Link href={`/cotizaciones/${q.folio}`} style={{ fontWeight: '700', color: 'var(--primary)' }}>
                             {q.folio}
                           </Link>
@@ -196,9 +200,17 @@ export default function DashboardPage() {
                       <td style={{ fontWeight: '600' }}>{q.client.company}</td>
                       <td style={{ color: 'var(--text-muted)' }}>{q.description || '-'}</td>
                       <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ flex: 1, height: '8px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden', minWidth: '60px' }}>
+                            <div style={{ width: `${q.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                          </div>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{q.progress}%</span>
+                        </div>
+                      </td>
+                      <td>
                         <span className={`badge badge-${badgeClass}`} style={{ 
-                          background: q.isPaid ? '#28a745' : isOld ? '#feebc8' : undefined, 
-                          color: q.isPaid ? 'white' : isOld ? '#9c4221' : undefined 
+                          background: q.isPaid ? '#28a745' : q.status === 'ANTICIPO' ? '#f6ad55' : isOld ? '#feb2b2' : undefined, 
+                          color: q.isPaid ? 'white' : q.status === 'ANTICIPO' ? 'white' : isOld ? '#9b2c2c' : undefined 
                         }}>
                           {statusText} {isOld ? '(Vencida)' : ''}
                         </span>

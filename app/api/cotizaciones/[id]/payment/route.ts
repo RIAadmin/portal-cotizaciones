@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth";
@@ -21,19 +21,54 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { advance, isPaid, paidAt } = body;
+    const { amount, date, isPaid, paidAt } = body;
 
-    const updateData: any = {};
-    if (advance !== undefined) updateData.advance = advance;
-    if (isPaid !== undefined) updateData.isPaid = isPaid;
-    if (paidAt) updateData.paidAt = new Date(paidAt);
+    const result = await prisma.$transaction(async (tx) => {
+      const currentQuotation = await tx.quotation.findUnique({
+        where: { id }
+      });
 
-    const quotation = await prisma.quotation.update({
-      where: { id: id },
-      data: updateData
+      if (!currentQuotation) {
+        throw new Error("Cotización no encontrada");
+      }
+
+      const updateData: any = {};
+
+      if (amount !== undefined) {
+        // 1. Create a new payment record
+        await tx.payment.create({
+          data: {
+            amount: amount,
+            date: date ? new Date(date) : new Date(),
+            quotationId: id
+          }
+        });
+
+        // 2. Sum all payments to update the advance field
+        const payments = await tx.payment.findMany({
+          where: { quotationId: id }
+        });
+        const totalAdvance = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        updateData.advance = totalAdvance;
+
+        // 3. Set status to ANTICIPO if not paid
+        if (!currentQuotation.isPaid && !isPaid) {
+          updateData.status = 'ANTICIPO';
+        }
+      }
+
+      if (isPaid !== undefined) {
+        updateData.isPaid = isPaid;
+        if (paidAt) updateData.paidAt = new Date(paidAt);
+      }
+
+      return await tx.quotation.update({
+        where: { id: id },
+        data: updateData
+      });
     });
 
-    return NextResponse.json(quotation);
+    return NextResponse.json(result);
   } catch (error: any) {
     console.error("CRITICAL PAYMENT ERROR:", error);
     return NextResponse.json({ 

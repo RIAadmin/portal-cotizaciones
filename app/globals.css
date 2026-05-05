@@ -230,3 +230,19 @@ td {
 .badge-oc-uploaded { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
 .badge-finished { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 .badge-invoiced { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+.badge-warning { background: #fff5f0; color: #dd6b20; border: 1px solid #fbd38d; }
+
+/* Progress Bar Styling */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width 0.5s ease-in-out;
+}

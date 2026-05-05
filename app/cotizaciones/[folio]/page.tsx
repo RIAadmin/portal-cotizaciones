@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
-import { FileText, ShoppingCart, Receipt, Eye } from 'lucide-react';
+import { FileText, ShoppingCart, Receipt, Eye, Clock } from 'lucide-react';
 import DocumentUploader from '@/components/DocumentUploader';
 import PaymentManagement from '@/components/PaymentManagement';
+import ProgressTracker from '@/components/ProgressTracker';
 
 interface PageProps {
   params: Promise<{ folio: string }>;
@@ -24,6 +25,13 @@ export default async function QuotationDetailPage({ params }: PageProps) {
     include: { 
       client: true,
       files: true,
+      payments: {
+        orderBy: { date: 'desc' }
+      },
+      updates: {
+        include: { user: true },
+        orderBy: { createdAt: 'desc' }
+      }
     },
   });
 
@@ -36,6 +44,13 @@ export default async function QuotationDetailPage({ params }: PageProps) {
   const invoicePdf = quotation.files.find(f => f.type === 'INVOICE_PDF');
   const invoiceXml = quotation.files.find(f => f.type === 'INVOICE_XML');
 
+  const statusMap: any = {
+    'PENDING': 'Pendiente',
+    'OC_UPLOADED': 'Con OC',
+    'ANTICIPO': 'Anticipo',
+    'INVOICED': 'Facturada',
+  };
+
   return (
     <div className="dashboard-layout">
       <Sidebar />
@@ -45,27 +60,54 @@ export default async function QuotationDetailPage({ params }: PageProps) {
             <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Detalle de Cotización</h1>
             <p style={{ color: 'var(--text-muted)' }}>Folio: <strong>{quotation.folio}</strong> | Cliente: <strong>{quotation.client.company}</strong></p>
           </div>
-          <span className={`badge badge-${quotation.status.toLowerCase().replace('_', '-')}`} style={{ fontSize: '1rem', padding: '8px 16px' }}>
-            {quotation.status === 'PENDING' ? 'Pendiente' : quotation.status === 'OC_UPLOADED' ? 'Con OC' : 'Facturada'}
-          </span>
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '4px' }}>AVANCE</div>
+              <div style={{ width: '100px', height: '10px', background: '#e2e8f0', borderRadius: '5px', overflow: 'hidden' }}>
+                <div style={{ width: `${quotation.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+              </div>
+            </div>
+            <span className={`badge badge-${quotation.isPaid ? 'finished' : quotation.status === 'ANTICIPO' ? 'warning' : quotation.status.toLowerCase().replace('_', '-')}`} style={{ 
+              fontSize: '1rem', 
+              padding: '8px 16px',
+              background: quotation.isPaid ? '#28a745' : quotation.status === 'ANTICIPO' ? '#f6ad55' : undefined,
+              color: quotation.isPaid || quotation.status === 'ANTICIPO' ? 'white' : undefined
+            }}>
+              {quotation.isPaid ? 'PAGADO' : statusMap[quotation.status]}
+            </span>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '32px' }}>
-          <div className="card">
-            <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <FileText size={24} /> Visualización de Cotización
-            </h2>
-            {quotationFile ? (
-              <iframe 
-                src={`/api/files/${quotationFile.id}`} 
-                style={{ width: '100%', height: '700px', border: 'none', borderRadius: 'var(--radius)' }}
-                title="Quotation PDF"
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div className="card">
+              <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FileText size={24} /> Visualización de Cotización
+              </h2>
+              {quotationFile ? (
+                <iframe 
+                  src={`/api/files/${quotationFile.id}`} 
+                  style={{ width: '100%', height: '700px', border: 'none', borderRadius: 'var(--radius)' }}
+                  title="Quotation PDF"
+                />
+              ) : (
+                <div style={{ padding: '100px', textAlign: 'center', background: 'var(--background)', borderRadius: 'var(--radius)' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No se subió PDF para esta cotización.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="card">
+              <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Clock size={24} /> Seguimiento de Avance de Obra
+              </h2>
+              
+              <ProgressTracker 
+                quotationId={quotation.id} 
+                currentProgress={quotation.progress} 
+                updates={quotation.updates} 
               />
-            ) : (
-              <div style={{ padding: '100px', textAlign: 'center', background: 'var(--background)', borderRadius: 'var(--radius)' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No se subió PDF para esta cotización.</p>
-              </div>
-            )}
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -132,7 +174,11 @@ export default async function QuotationDetailPage({ params }: PageProps) {
 
             <PaymentManagement 
               quotationId={quotation.id} 
-              initialAdvance={Number(quotation.advance || 0)} 
+              payments={quotation.payments.map(p => ({
+                id: p.id,
+                amount: Number(p.amount),
+                date: p.date.toISOString()
+              }))}
               isPaid={quotation.isPaid} 
               initialPaidAt={quotation.paidAt ? quotation.paidAt.toISOString() : null}
             />
@@ -141,4 +187,5 @@ export default async function QuotationDetailPage({ params }: PageProps) {
       </main>
     </div>
   );
+
 }
