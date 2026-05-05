@@ -204,7 +204,11 @@ export default function DashboardPage() {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <div style={{ flex: 1, height: '8px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden', minWidth: '60px' }}>
-                            <div style={{ width: `${q.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                            <div style={{ 
+                                  width: `${q.progress}%`, 
+                                  height: '100%', 
+                                  background: q.progress < 50 ? '#dc3545' : q.progress < 100 ? '#ffc107' : '#28a745'
+                                }}></div>
                           </div>
                           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{q.progress}%</span>
                         </div>

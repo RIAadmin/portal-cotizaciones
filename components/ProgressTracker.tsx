@@ -103,7 +103,7 @@ export default function ProgressTracker({ quotationId, currentProgress, updates 
                 width: '14px', 
                 height: '14px', 
                 borderRadius: '50%', 
-                background: 'var(--primary)', 
+                background: update.percentage < 50 ? '#dc3545' : update.percentage < 100 ? '#ffc107' : '#28a745', 
                 marginTop: '6px',
                 flexShrink: 0,
                 zIndex: 1
@@ -111,7 +111,11 @@ export default function ProgressTracker({ quotationId, currentProgress, updates 
 
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: '700', fontSize: '1.1rem', color: 'var(--primary)' }}>{update.percentage}% Avance</span>
+                  <span style={{ 
+                    fontWeight: '700', 
+                    fontSize: '1.1rem', 
+                    color: update.percentage < 50 ? '#dc3545' : update.percentage < 100 ? '#d97706' : '#28a745' 
+                  }}>{update.percentage}% Avance</span>
                   <div style={{ display: 'flex', gap: '15px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Calendar size={14} />

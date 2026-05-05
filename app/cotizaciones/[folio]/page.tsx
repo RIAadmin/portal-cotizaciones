@@ -64,7 +64,12 @@ export default async function QuotationDetailPage({ params }: PageProps) {
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '4px' }}>AVANCE</div>
               <div style={{ width: '100px', height: '10px', background: '#e2e8f0', borderRadius: '5px', overflow: 'hidden' }}>
-                <div style={{ width: `${quotation.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                <div style={{ 
+                  width: `${quotation.progress}%`, 
+                  height: '100%', 
+                  background: quotation.progress < 50 ? '#dc3545' : quotation.progress < 100 ? '#ffc107' : '#28a745',
+                  transition: 'width 0.3s ease'
+                }}></div>
               </div>
             </div>
             <span className={`badge badge-${quotation.isPaid ? 'finished' : quotation.status === 'ANTICIPO' ? 'warning' : quotation.status.toLowerCase().replace('_', '-')}`} style={{ 
