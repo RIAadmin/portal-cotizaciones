@@ -88,90 +88,71 @@ export default function DashboardPage() {
               fontSize: '2.2rem', 
               fontWeight: '800', 
               color: 'var(--primary)',
-              lineHeight: '1.2',
-              letterSpacing: '-0.01em',
-            }}>
-              Recubrimientos Industriales y Aplicaciones <br/>
-              <span style={{ fontSize: '1.4rem', fontWeight: '400', color: 'var(--text-muted)' }}>
-                Portal de Cotizaciones
-              </span>
-              {userName && (
-                <div style={{ fontSize: '1.1rem', fontWeight: '500', color: 'var(--primary)', marginTop: '10px' }}>
-                  ¡Bienvenido, {userName}!
-                </div>
-              )}
-            </h1>
-          </div>
-          <Link href="/cotizaciones/nueva" className="btn btn-primary">
-            <Plus size={20} />
-            Nueva Cotización
-          </Link>
-        </header>
-
-        {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-          {[
-            { id: 'COTIZANDO', label: 'En Cotización', count: counts.COTIZANDO, icon: <Clock size={28} />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
-            { id: 'PROCESO', label: 'En Ejecución', count: counts.PROCESO, icon: <ShoppingCart size={28} />, color: '#3b82f6', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-            { id: 'PENDIENTE_PAGO', label: 'Pend. Pago', count: counts.PENDIENTE_PAGO, icon: <AlertTriangle size={28} />, color: '#ef4444', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' },
-            { id: 'PAGADO', label: 'Proyectos Pagados', count: counts.PAGADO, icon: <CheckCircle size={28} />, color: '#10b981', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
-          ].map((stat) => (
-            <div key={stat.id} className="card stat-card" style={{ 
-              padding: '24px', 
-              position: 'relative', 
-              overflow: 'hidden',
-              background: 'white',
-              border: 'none',
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <div style={{ 
-                position: 'absolute', 
-                top: '-20px', 
-                right: '-20px', 
-                width: '100px', 
-                height: '100px', 
-                background: stat.gradient, 
-                opacity: 0.1, 
-                borderRadius: '50%' 
-              }}></div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ 
-                  background: stat.gradient, 
-                  color: 'white', 
-                  padding: '12px', 
-                  borderRadius: '16px', 
-                  display: 'flex', 
-                  boxShadow: `0 8px 16px ${stat.color}44` 
-                }}>
-                  {stat.icon}
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <h3 style={{ fontSize: '2.2rem', fontWeight: '800', margin: 0, color: 'var(--text)' }}>{stat.count}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
-                </div>
-              </div>
-              
-              <div style={{ 
-                height: '4px', 
-                width: '100%', 
-                background: '#f1f5f9', 
-                borderRadius: '2px', 
-                marginTop: '10px' 
-              }}>
-                <div style={{ 
-                  height: '100%', 
-                  width: '60%', 
-                  background: stat.gradient, 
-                  borderRadius: '2px',
-                  opacity: 0.6
-                }}></div>
-              </div>
+        {/* Header Section with Gradient Background */}
+        <div style={{ 
+          background: 'linear-gradient(to right, #ffffff 0%, #ffffff 20%, #e6f0ff 100%)', 
+          margin: '-40px -40px 40px -40px', 
+          padding: '40px',
+          borderBottom: '1px solid #e2e8f0'
+        }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+            <div>
+              <h1 style={{ fontSize: '2.5rem', color: 'var(--primary)', fontWeight: '800', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                RECUBRIMIENTOS INDUSTRIALES
+                <span style={{ fontSize: '1.2rem', color: '#64748b', fontWeight: '500', marginTop: '5px' }}>Administración de Proyectos</span>
+                {userName && (
+                  <div style={{ fontSize: '1rem', color: 'var(--text-muted)', marginTop: '10px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%' }}></div>
+                    ¡Bienvenido, {userName}!
+                  </div>
+                )}
+              </h1>
             </div>
-          ))}
+            <Link href="/cotizaciones/nueva" className="btn btn-primary" style={{ boxShadow: '0 10px 15px -3px rgba(0, 35, 102, 0.3)', padding: '12px 24px' }}>
+              <Plus size={20} />
+              Nueva Cotización
+            </Link>
+          </header>
+
+          {/* Stats Cards inside the gradient section */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            {[
+              { id: 'COTIZANDO', label: 'En Cotización', count: counts.COTIZANDO, icon: <Clock size={28} />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
+              { id: 'PROCESO', label: 'En Ejecución', count: counts.PROCESO, icon: <ShoppingCart size={28} />, color: '#3b82f6', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
+              { id: 'PENDIENTE_PAGO', label: 'Pend. Pago', count: counts.PENDIENTE_PAGO, icon: <AlertTriangle size={28} />, color: '#ef4444', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' },
+              { id: 'PAGADO', label: 'Proyectos Pagados', count: counts.PAGADO, icon: <CheckCircle size={28} />, color: '#10b981', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
+            ].map((stat) => (
+              <div key={stat.id} className="card stat-card" style={{ 
+                padding: '24px', 
+                position: 'relative', 
+                overflow: 'hidden',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ 
+                    background: stat.gradient, 
+                    color: 'white', 
+                    padding: '12px', 
+                    borderRadius: '16px', 
+                    display: 'flex', 
+                    boxShadow: `0 8px 16px ${stat.color}44` 
+                  }}>
+                    {stat.icon}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <h3 style={{ fontSize: '2.2rem', fontWeight: '800', margin: 0, color: 'var(--text)' }}>{stat.count}</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Filters */}
