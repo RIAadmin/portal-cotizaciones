@@ -6,7 +6,7 @@ import { Upload } from 'lucide-react';
 
 interface Props {
   quotationId: number;
-  type: 'OC' | 'INVOICE_PDF' | 'INVOICE_XML';
+  type: 'QUOTATION' | 'OC' | 'INVOICE_PDF' | 'INVOICE_XML';
   label: string;
   accept?: string;
   disabled?: boolean;
