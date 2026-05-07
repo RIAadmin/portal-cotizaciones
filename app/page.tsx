@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
+  const [filterType, setFilterType] = useState('TODOS'); // TODOS, COTIZANDO, PROCESO, PENDIENTE_PAGO, PAGADO
 
   const fetchQuotations = async () => {
     try {
@@ -43,17 +44,31 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const results = quotations.filter(q => 
-      q.folio.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (q.description && q.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredQuotations(results);
-  }, [searchTerm, quotations]);
+    const results = quotations.filter(q => {
+      const matchesSearch = 
+        q.folio.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (q.description && q.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      if (!matchesSearch) return false;
 
-  const pendingCount = quotations.filter(q => q.status === 'PENDING' && !q.isPaid).length;
-  const ocCount = quotations.filter(q => q.status === 'OC_UPLOADED' && !q.isPaid).length;
-  const finishedCount = quotations.filter(q => q.isPaid).length;
+      if (filterType === 'COTIZANDO') return q.status === 'PENDING' && !q.isPaid;
+      if (filterType === 'PROCESO') return (q.status === 'OC_UPLOADED' || q.status === 'ANTICIPO' || q.status === 'INVOICED') && q.progress < 100 && !q.isPaid;
+      if (filterType === 'PENDIENTE_PAGO') return q.progress === 100 && !q.isPaid;
+      if (filterType === 'PAGADO') return q.isPaid;
+
+      return true;
+    });
+    setFilteredQuotations(results);
+  }, [searchTerm, quotations, filterType]);
+
+  const counts = {
+    TODOS: quotations.length,
+    COTIZANDO: quotations.filter(q => q.status === 'PENDING' && !q.isPaid).length,
+    PROCESO: quotations.filter(q => (q.status === 'OC_UPLOADED' || q.status === 'ANTICIPO' || q.status === 'INVOICED') && q.progress < 100 && !q.isPaid).length,
+    PENDIENTE_PAGO: quotations.filter(q => q.progress === 100 && !q.isPaid).length,
+    PAGADO: quotations.filter(q => q.isPaid).length,
+  };
 
   const isOldPending = (q: any) => {
     if (q.status !== 'PENDING' || q.isPaid) return false;
@@ -94,37 +109,88 @@ export default function DashboardPage() {
         </header>
 
         {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #b7791f' }}>
             <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '12px', color: '#856404' }}>
               <Clock size={30} />
             </div>
             <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pendientes</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{pendingCount}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>En Cotización</p>
+              <h3 style={{ fontSize: '1.8rem' }}>{counts.COTIZANDO}</h3>
             </div>
           </div>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #2b6cb0' }}>
             <div style={{ background: '#d1ecf1', padding: '15px', borderRadius: '12px', color: '#0c5460' }}>
               <ShoppingCart size={30} />
             </div>
             <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Con OC</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{ocCount}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>En Ejecución</p>
+              <h3 style={{ fontSize: '1.8rem' }}>{counts.PROCESO}</h3>
             </div>
           </div>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #dc3545' }}>
+            <div style={{ background: '#f8d7da', padding: '15px', borderRadius: '12px', color: '#721c24' }}>
+              <AlertTriangle size={30} />
+            </div>
+            <div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pend. Pago</p>
+              <h3 style={{ fontSize: '1.8rem' }}>{counts.PENDIENTE_PAGO}</h3>
+            </div>
+          </div>
+          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #28a745' }}>
             <div style={{ background: '#d4edda', padding: '15px', borderRadius: '12px', color: '#155724' }}>
               <CheckCircle size={30} />
             </div>
             <div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pagados</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{finishedCount}</h3>
+              <h3 style={{ fontSize: '1.8rem' }}>{counts.PAGADO}</h3>
             </div>
           </div>
         </div>
 
-        <section className="card">
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
+          {[
+            { id: 'TODOS', label: 'Todos', color: 'var(--primary)' },
+            { id: 'COTIZANDO', label: 'Cotizando', color: '#b7791f' },
+            { id: 'PROCESO', label: 'En Proceso', color: '#2b6cb0' },
+            { id: 'PENDIENTE_PAGO', label: 'Pendiente Pago', color: '#dc3545' },
+            { id: 'PAGADO', label: 'Pagados', color: '#28a745' },
+          ].map((btn) => (
+            <button
+              key={btn.id}
+              onClick={() => setFilterType(btn.id)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '30px',
+                border: 'none',
+                background: filterType === btn.id ? btn.color : '#f1f5f9',
+                color: filterType === btn.id ? 'white' : '#64748b',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+                boxShadow: filterType === btn.id ? `0 4px 12px ${btn.color}44` : 'none'
+              }}
+            >
+              {btn.label}
+              <span style={{ 
+                background: filterType === btn.id ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)', 
+                padding: '2px 8px', 
+                borderRadius: '10px',
+                fontSize: '0.75rem'
+              }}>
+                {(counts as any)[btn.id]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <section className="card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', gap: '20px' }}>
             <h2 style={{ fontSize: '1.5rem', color: 'var(--primary)', whiteSpace: 'nowrap' }}>Cotizaciones Recientes</h2>
             

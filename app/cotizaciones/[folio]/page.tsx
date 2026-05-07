@@ -7,6 +7,8 @@ import { FileText, ShoppingCart, Receipt, Eye, Clock } from 'lucide-react';
 import DocumentUploader from '@/components/DocumentUploader';
 import PaymentManagement from '@/components/PaymentManagement';
 import ProgressTracker from '@/components/ProgressTracker';
+import EditableAmount from '@/components/EditableAmount';
+import QuotationFilesManager from '@/components/QuotationFilesManager';
 
 interface PageProps {
   params: Promise<{ folio: string }>;
@@ -39,7 +41,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const quotationFile = quotation.files.find(f => f.type === 'QUOTATION');
+  const quotationFiles = quotation.files.filter(f => f.type === 'QUOTATION');
   const ocFile = quotation.files.find(f => f.type === 'OC');
   const invoicePdf = quotation.files.find(f => f.type === 'INVOICE_PDF');
   const invoiceXml = quotation.files.find(f => f.type === 'INVOICE_XML');
@@ -57,7 +59,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
       <main className="main-content">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Detalle de Cotización</h1>
+            <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Detalle de Proyecto</h1>
             <p style={{ color: 'var(--text-muted)' }}>Folio: <strong>{quotation.folio}</strong> | Cliente: <strong>{quotation.client.company}</strong></p>
           </div>
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -86,20 +88,25 @@ export default async function QuotationDetailPage({ params }: PageProps) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '32px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div className="card">
-              <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <FileText size={24} /> Visualización de Cotización
-              </h2>
-              {quotationFile ? (
-                <iframe 
-                  src={`/api/files/${quotationFile.id}`} 
-                  style={{ width: '100%', height: '700px', border: 'none', borderRadius: 'var(--radius)' }}
-                  title="Quotation PDF"
-                />
-              ) : (
-                <div style={{ padding: '100px', textAlign: 'center', background: 'var(--background)', borderRadius: 'var(--radius)' }}>
-                  <p style={{ color: 'var(--text-muted)' }}>No se subió PDF para esta cotización.</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                  <FileText size={24} /> Expediente de Proyecto
+                </h2>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>MONTO TOTAL DEL PROYECTO</span>
+                  <EditableAmount quotationId={quotation.id} initialTotal={Number(quotation.total || 0)} />
                 </div>
-              )}
+              </div>
+
+              <QuotationFilesManager 
+                quotationId={quotation.id} 
+                files={quotationFiles.map(f => ({
+                  id: f.id,
+                  filename: f.filename,
+                  createdAt: f.createdAt
+                }))} 
+                isPaid={quotation.isPaid}
+              />
             </div>
 
             <div className="card">
