@@ -82,12 +82,6 @@ export default function DashboardPage() {
     <div className="dashboard-layout">
       <Sidebar />
       <main className="main-content">
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <div>
-            <h1 style={{ 
-              fontSize: '2.2rem', 
-              fontWeight: '800', 
-              color: 'var(--primary)',
         {/* Header Section with Gradient Background */}
         <div style={{ 
           background: 'linear-gradient(to right, #ffffff 0%, #ffffff 20%, #e6f0ff 100%)', 
