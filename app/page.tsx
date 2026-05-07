@@ -109,43 +109,69 @@ export default function DashboardPage() {
         </header>
 
         {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #b7791f' }}>
-            <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '12px', color: '#856404' }}>
-              <Clock size={30} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          {[
+            { id: 'COTIZANDO', label: 'En Cotización', count: counts.COTIZANDO, icon: <Clock size={28} />, color: '#f59e0b', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
+            { id: 'PROCESO', label: 'En Ejecución', count: counts.PROCESO, icon: <ShoppingCart size={28} />, color: '#3b82f6', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
+            { id: 'PENDIENTE_PAGO', label: 'Pend. Pago', count: counts.PENDIENTE_PAGO, icon: <AlertTriangle size={28} />, color: '#ef4444', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' },
+            { id: 'PAGADO', label: 'Proyectos Pagados', count: counts.PAGADO, icon: <CheckCircle size={28} />, color: '#10b981', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
+          ].map((stat) => (
+            <div key={stat.id} className="card stat-card" style={{ 
+              padding: '24px', 
+              position: 'relative', 
+              overflow: 'hidden',
+              background: 'white',
+              border: 'none',
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ 
+                position: 'absolute', 
+                top: '-20px', 
+                right: '-20px', 
+                width: '100px', 
+                height: '100px', 
+                background: stat.gradient, 
+                opacity: 0.1, 
+                borderRadius: '50%' 
+              }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ 
+                  background: stat.gradient, 
+                  color: 'white', 
+                  padding: '12px', 
+                  borderRadius: '16px', 
+                  display: 'flex', 
+                  boxShadow: `0 8px 16px ${stat.color}44` 
+                }}>
+                  {stat.icon}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <h3 style={{ fontSize: '2.2rem', fontWeight: '800', margin: 0, color: 'var(--text)' }}>{stat.count}</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
+                </div>
+              </div>
+              
+              <div style={{ 
+                height: '4px', 
+                width: '100%', 
+                background: '#f1f5f9', 
+                borderRadius: '2px', 
+                marginTop: '10px' 
+              }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: '60%', 
+                  background: stat.gradient, 
+                  borderRadius: '2px',
+                  opacity: 0.6
+                }}></div>
+              </div>
             </div>
-            <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>En Cotización</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{counts.COTIZANDO}</h3>
-            </div>
-          </div>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #2b6cb0' }}>
-            <div style={{ background: '#d1ecf1', padding: '15px', borderRadius: '12px', color: '#0c5460' }}>
-              <ShoppingCart size={30} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>En Ejecución</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{counts.PROCESO}</h3>
-            </div>
-          </div>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #dc3545' }}>
-            <div style={{ background: '#f8d7da', padding: '15px', borderRadius: '12px', color: '#721c24' }}>
-              <AlertTriangle size={30} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pend. Pago</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{counts.PENDIENTE_PAGO}</h3>
-            </div>
-          </div>
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '6px solid #28a745' }}>
-            <div style={{ background: '#d4edda', padding: '15px', borderRadius: '12px', color: '#155724' }}>
-              <CheckCircle size={30} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Pagados</p>
-              <h3 style={{ fontSize: '1.8rem' }}>{counts.PAGADO}</h3>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Filters */}
