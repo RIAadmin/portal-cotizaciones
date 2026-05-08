@@ -155,7 +155,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
             
             <div className="card">
               <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Receipt size={20} /> {quotation.isProject ? 'Factura General (Opcional)' : 'Factura (PDF y XML)'}
+                <Receipt size={20} /> {(quotation.isProject || quotation.invoices.length > 0) ? 'Factura General (Opcional)' : 'Factura (PDF y XML)'}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {invoicePdf ? (
@@ -193,7 +193,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {quotation.isProject ? (
+            {(quotation.isProject || quotation.invoices.length > 0) ? (
               <InvoiceManagement 
                 quotationId={quotation.id}
                 projectTotal={Number(quotation.total || 0)}
