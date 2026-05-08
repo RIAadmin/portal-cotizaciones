@@ -322,5 +322,4 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
       </div>
     </div>
   );
-});
 }
