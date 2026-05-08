@@ -225,9 +225,12 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               <PaymentManagement 
                 quotationId={quotation.id} 
                 totalAmount={Number(quotation.total || 0)} 
+                isPaid={quotation.isPaid}
+                initialPaidAt={quotation.paidAt ? quotation.paidAt.toISOString() : null}
                 payments={quotation.payments.map(p => ({
-                  ...p,
-                  amount: Number(p.amount)
+                  id: p.id,
+                  amount: Number(p.amount),
+                  date: p.date.toISOString()
                 }))} 
               />
             )}
