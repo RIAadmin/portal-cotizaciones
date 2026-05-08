@@ -27,6 +27,10 @@ export default function PaymentManagement({ quotationId, payments, isPaid, initi
 
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDate, setEditDate] = useState('');
+
   const handleAddPayment = async () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Por favor ingresa un monto válido");
     
@@ -52,6 +56,56 @@ export default function PaymentManagement({ quotationId, payments, isPaid, initi
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdatePayment = async (id: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/payments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: editAmount ? parseFloat(editAmount) : undefined,
+          date: editDate + 'T12:00:00'
+        }),
+      });
+      if (res.ok) {
+        setEditingId(null);
+        router.refresh();
+      } else {
+        alert("Error al actualizar pago");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePayment = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este pago? Esto afectará el avance del proyecto.")) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/payments/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        alert("Error al eliminar pago");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startEditing = (p: Payment) => {
+    setEditingId(p.id);
+    setEditAmount(p.amount.toString());
+    setEditDate(new Date(p.date).toISOString().split('T')[0]);
   };
 
   const handleMarkAsPaid = async () => {
@@ -139,9 +193,44 @@ export default function PaymentManagement({ quotationId, payments, isPaid, initi
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {payments.map(p => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', background: '#f8fafc', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ fontWeight: '600' }}>${p.amount.toLocaleString('es-MX')}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                  <div key={p.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    {editingId === p.id ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input 
+                            type="number" 
+                            value={editAmount} 
+                            onChange={(e) => setEditAmount(e.target.value)} 
+                            style={{ flex: 1, padding: '5px' }}
+                          />
+                          <input 
+                            type="date" 
+                            value={editDate} 
+                            onChange={(e) => setEditDate(e.target.value)} 
+                            style={{ width: '130px', padding: '5px' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button onClick={() => handleUpdatePayment(p.id)} className="btn btn-primary" style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}>Guardar</button>
+                          <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}>Cancelar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <span style={{ fontWeight: '600' }}>${p.amount.toLocaleString('es-MX')}</span>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: '10px' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button onClick={() => startEditing(p)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--primary)' }} title="Editar">
+                            <Plus size={16} />
+                          </button>
+                          <button onClick={() => handleDeletePayment(p.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#e53e3e' }} title="Eliminar">
+                            <Plus size={16} style={{ transform: 'rotate(45deg)' }} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -205,11 +294,48 @@ export default function PaymentManagement({ quotationId, payments, isPaid, initi
           {/* History even when paid */}
           <div style={{ marginTop: '15px', borderTop: '1px solid rgba(21, 87, 36, 0.2)', paddingTop: '15px' }}>
             <p style={{ fontSize: '0.75rem', marginBottom: '8px', opacity: 0.7 }}>HISTORIAL DE PAGOS</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {payments.map(p => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                    <span>${p.amount.toLocaleString('es-MX')}</span>
-                    <span>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                  <div key={p.id} style={{ background: 'rgba(255,255,255,0.5)', padding: '10px', borderRadius: '8px' }}>
+                    {editingId === p.id ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input 
+                            type="number" 
+                            value={editAmount} 
+                            onChange={(e) => setEditAmount(e.target.value)} 
+                            style={{ flex: 1, padding: '5px' }}
+                            disabled={true} /* User requested: in full payments, only edit date */
+                          />
+                          <input 
+                            type="date" 
+                            value={editDate} 
+                            onChange={(e) => setEditDate(e.target.value)} 
+                            style={{ width: '130px', padding: '5px' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button onClick={() => handleUpdatePayment(p.id)} className="btn btn-primary" style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}>Guardar</button>
+                          <button onClick={() => setEditingId(null)} className="btn btn-outline" style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}>Cancelar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                        <div>
+                          <span style={{ fontWeight: '600' }}>${p.amount.toLocaleString('es-MX')}</span>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: '10px' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button onClick={() => startEditing(p)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--primary)' }} title="Editar">
+                            <Plus size={16} />
+                          </button>
+                          {/* For full payments, maybe only allow editing date, but keep delete for mistakes */}
+                          <button onClick={() => handleDeletePayment(p.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#e53e3e' }} title="Eliminar">
+                            <Plus size={16} style={{ transform: 'rotate(45deg)' }} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -217,5 +343,6 @@ export default function PaymentManagement({ quotationId, payments, isPaid, initi
         </div>
       )}
     </div>
+
   );
 }
