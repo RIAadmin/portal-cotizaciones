@@ -45,6 +45,15 @@ export default function DepositosPage() {
     .filter(p => new Date(p.date).getMonth() === new Date().getMonth())
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
+  const previousMonthTotal = data.payments
+    .filter(p => {
+      const pDate = new Date(p.date);
+      const now = new Date();
+      return pDate.getMonth() === (now.getMonth() === 0 ? 11 : now.getMonth() - 1) &&
+             pDate.getFullYear() === (now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear());
+    })
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
   };
@@ -98,13 +107,22 @@ export default function DepositosPage() {
 
           {/* Quick Stats */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="card" style={{ padding: '24px', background: 'var(--primary)', color: 'white' }}>
-              <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem', fontWeight: '500' }}>Ingresos este mes</p>
-              <h2 style={{ fontSize: '2rem', margin: '10px 0', fontWeight: '800' }}>{formatCurrency(currentMonthTotal)}</h2>
+            {/* Previous Month Comparison */}
+            <div className="card" style={{ padding: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase' }}>Mes Anterior</p>
+              <h4 style={{ fontSize: '1.2rem', margin: '5px 0 0 0', fontWeight: '700', color: '#64748b' }}>
+                {formatCurrency(previousMonthTotal)}
+              </h4>
+            </div>
+
+            <div className="card" style={{ padding: '24px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.2)' }}>
+              <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem', fontWeight: '500' }}>Ingresos este mes</p>
+              <h2 style={{ fontSize: '2.2rem', margin: '10px 0', fontWeight: '800' }}>{formatCurrency(currentMonthTotal)}</h2>
               <div style={{ height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{ width: '70%', height: '100%', background: 'white' }}></div>
+                <div style={{ width: '100%', height: '100%', background: 'white' }}></div>
               </div>
             </div>
+
             <div className="card" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ background: '#e6f0ff', padding: '10px', borderRadius: '10px', color: 'var(--primary)' }}>
@@ -153,7 +171,11 @@ export default function DepositosPage() {
                 filteredPayments.map((p) => (
                   <tr key={p.id}>
                     <td style={{ fontWeight: '500' }}>{new Date(p.date).toLocaleDateString('es-MX')}</td>
-                    <td><span style={{ color: 'var(--primary)', fontWeight: '700' }}>{p.quotation.folio}</span></td>
+                    <td>
+                      <a href={`/cotizaciones/${p.quotation.folio}`} style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>
+                        {p.quotation.folio}
+                      </a>
+                    </td>
                     <td style={{ fontWeight: '600' }}>{p.quotation.client.company}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.note || 'Pago registrado'}</td>
                     <td style={{ textAlign: 'right', fontWeight: '800', color: '#059669' }}>{formatCurrency(Number(p.amount))}</td>

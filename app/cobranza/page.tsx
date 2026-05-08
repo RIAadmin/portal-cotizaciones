@@ -161,7 +161,11 @@ export default async function CobranzaPage() {
                         borderRadius: '12px',
                         border: '1px solid #edf2f7'
                       }}>
-                        <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{project.folio}</div>
+                        <div style={{ fontWeight: '700' }}>
+                          <a href={`/cotizaciones/${project.folio}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                            {project.folio}
+                          </a>
+                        </div>
                         <div style={{ color: '#4a5568', fontSize: '0.95rem' }}>{project.description || 'Sin descripción'}</div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Monto: ${project.total.toLocaleString('es-MX')}</div>
                         <div style={{ fontSize: '0.9rem', color: '#dc3545' }}>Antic: -${project.advance.toLocaleString('es-MX')}</div>
