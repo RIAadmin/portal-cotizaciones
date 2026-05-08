@@ -122,17 +122,22 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
       });
       if (res.ok) {
         setPaymentAmount({ ...paymentAmount, [invoiceId]: '' });
+        alert("¡Abono registrado correctamente!");
         router.refresh();
       }
     } catch (err) {
       console.error(err);
+      alert("Error al registrar abono");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLiquidation = async (invoiceId: number, pendingAmount: number) => {
+    const date = paymentDate[invoiceId] || new Date().toISOString().split('T')[0];
+    
     if (!confirm(`¿Confirmas que ya se realizó el depósito para la liquidación total por ${formatCurrency(pendingAmount)}?`)) return;
+    
     setLoading(true);
     try {
       const res = await fetch(`/api/cotizaciones/${quotationId}/payment`, {
@@ -140,13 +145,17 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount: pendingAmount,
-          date: new Date().toISOString().split('T')[0] + 'T12:00:00',
+          date: date + 'T12:00:00',
           invoiceId
         }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        alert("¡Factura liquidada correctamente!");
+        router.refresh();
+      }
     } catch (err) {
       console.error(err);
+      alert("Error al liquidar factura");
     } finally {
       setLoading(false);
     }
