@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { DollarSign, Wallet, ArrowDownCircle, AlertCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function CobranzaPage() {
   const session = await getServerSession(authOptions);
