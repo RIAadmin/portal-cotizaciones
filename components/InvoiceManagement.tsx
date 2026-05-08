@@ -262,61 +262,87 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
                 <button onClick={() => handleDeleteInvoice(inv.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}><Trash2 size={20} /></button>
               </div>
 
-              <div style={{ padding: '30px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>
+              <div style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 {/* PDF/XML Display */}
                 <div>
-                  <h4 style={{ margin: '0 0 15px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ARCHIVOS</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>ARCHIVOS DE FACTURA</h4>
+                  <div style={{ display: 'flex', gap: '10px' }}>
                     {inv.files.find(f => f.type === 'INVOICE_PDF') ? (
-                      <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_PDF')?.id}`} target="_blank" className="btn btn-outline" style={{ justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                        Ver PDF <Eye size={18} />
+                      <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_PDF')?.id}`} target="_blank" className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem', background: '#f1f5f9' }}>
+                        Ver PDF <Eye size={18} style={{ marginLeft: '8px' }} />
                       </a>
-                    ) : <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Sin PDF</p>}
+                    ) : <div style={{ flex: 1, padding: '10px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', border: '1px dashed #e2e8f0' }}>Sin PDF</div>}
                     
                     {inv.files.find(f => f.type === 'INVOICE_XML') ? (
-                      <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_XML')?.id}`} target="_blank" className="btn btn-outline" style={{ justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                        Ver XML <Eye size={18} />
+                      <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_XML')?.id}`} target="_blank" className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem', background: '#f1f5f9' }}>
+                        Ver XML <Eye size={18} style={{ marginLeft: '8px' }} />
                       </a>
-                    ) : <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Sin XML</p>}
+                    ) : <div style={{ flex: 1, padding: '10px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', border: '1px dashed #e2e8f0' }}>Sin XML</div>}
                   </div>
                 </div>
 
                 {/* Payment Manager */}
-                <div>
-                  <h4 style={{ margin: '0 0 15px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>GESTIÓN DE PAGOS</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '15px' }}>
-                    <div style={{ position: 'relative' }}>
-                      <DollarSign size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+                  <h4 style={{ margin: '0 0 15px 0', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>REGISTRAR PAGOS</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '10px' }}>
+                      <div style={{ position: 'relative' }}>
+                        <DollarSign size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                        <input 
+                          type="number" 
+                          value={paymentAmount[inv.id] || ''} 
+                          onChange={e => setPaymentAmount({ ...paymentAmount, [inv.id]: e.target.value })} 
+                          placeholder="Monto del abono" 
+                          style={{ paddingLeft: '40px', fontSize: '1.1rem', height: '50px' }}
+                          disabled={isFullyPaid}
+                        />
+                      </div>
                       <input 
-                        type="number" 
-                        value={paymentAmount[inv.id] || ''} 
-                        onChange={e => setPaymentAmount({ ...paymentAmount, [inv.id]: e.target.value })} 
-                        placeholder="Monto" 
-                        style={{ paddingLeft: '32px' }}
+                        type="date" 
+                        value={paymentDate[inv.id] || new Date().toISOString().split('T')[0]} 
+                        onChange={e => setPaymentDate({ ...paymentDate, [inv.id]: e.target.value })} 
+                        style={{ height: '50px' }}
+                        disabled={isFullyPaid}
                       />
                     </div>
-                    <input type="date" value={paymentDate[inv.id] || new Date().toISOString().split('T')[0]} onChange={e => setPaymentDate({ ...paymentDate, [inv.id]: e.target.value })} />
-                    <button onClick={() => handleAddPayment(inv.id)} className="btn btn-primary" style={{ background: 'var(--primary)' }}>Abonar</button>
-                  </div>
-                  
-                  {!isFullyPaid && (
-                    <button onClick={() => handleLiquidation(inv.id, pending)} className="btn btn-primary" style={{ width: '100%', background: '#10b981', border: 'none', marginBottom: '20px' }}>
-                      Liquidar Total: {formatCurrency(pending)}
+                    
+                    <button 
+                      onClick={() => handleAddPayment(inv.id)} 
+                      className="btn btn-primary" 
+                      style={{ width: '100%', padding: '15px', fontSize: '1rem', fontWeight: '700' }}
+                      disabled={isFullyPaid || loading}
+                    >
+                      <Plus size={20} /> REGISTRAR ABONO / ANTICIPO
                     </button>
-                  )}
 
-                  <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '15px' }}>
-                    <p style={{ margin: '0 0 10px 0', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>HISTORIAL</span>
+                    {!isFullyPaid && (
+                      <button 
+                        onClick={() => handleLiquidation(inv.id, pending)} 
+                        className="btn btn-primary" 
+                        style={{ width: '100%', background: '#10b981', border: 'none', padding: '15px', fontSize: '1rem', fontWeight: '700' }}
+                        disabled={loading}
+                      >
+                        <CheckCircle size={20} /> LIQUIDACIÓN TOTAL ({formatCurrency(pending)})
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '15px', marginTop: '20px' }}>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>HISTORIAL DE PAGOS</span>
                       <span style={{ color: pending > 0 ? '#ef4444' : '#10b981' }}>PENDIENTE: {formatCurrency(pending)}</span>
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {inv.payments.map(p => (
-                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
-                          <span style={{ fontWeight: '800', color: '#059669' }}>{formatCurrency(Number(p.amount))}</span>
-                          <span style={{ color: 'var(--text-muted)' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
-                        </div>
-                      ))}
+                      {inv.payments.length === 0 ? (
+                        <p style={{ margin: 0, padding: '10px', textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>No hay pagos registrados aún</p>
+                      ) : (
+                        inv.payments.map(p => (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'white', padding: '10px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem' }}>
+                            <span style={{ fontWeight: '800', color: '#059669' }}>{formatCurrency(Number(p.amount))}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
