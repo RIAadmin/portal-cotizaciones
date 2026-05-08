@@ -10,8 +10,13 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ message: "No autorizado" }, { status: 401 });
 
-    // Fetch all payments with client and quotation info
+    // Fetch all payments from May 1st, 2026 onwards
     const payments = await prisma.payment.findMany({
+      where: {
+        date: {
+          gte: new Date('2026-05-01')
+        }
+      },
       include: {
         quotation: {
           include: {
