@@ -32,33 +32,36 @@ interface Props {
 export default function InvoiceManagement({ quotationId, projectTotal, initialInvoices, generalPayments }: Props) {
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
-  const [newInvoice, setNewInvoice] = useState({ number: '', amount: '', date: new Date().toISOString().split('T')[0] });
-  const [expandedInvoice, setExpandedInvoice] = useState<number | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newInvoiceAmount, setNewInvoiceAmount] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState<Record<number, string>>({});
+  const [paymentDate, setPaymentDate] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const totalInvoiced = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
   const totalPaidInvoices = invoices.reduce((sum, inv) => {
-    const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
-    return sum + paid;
+    return sum + inv.payments.reduce((s, p) => s + Number(p.amount), 0);
   }, 0);
   const totalGeneralPaid = generalPayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const grandTotalPaid = totalPaidInvoices + totalGeneralPaid;
+  const remainingProject = projectTotal - grandTotalPaid;
 
   const handleAddInvoice = async () => {
-    if (!newInvoice.number || !newInvoice.amount) return alert("Completa los datos de la factura");
+    if (!newInvoiceAmount) return alert("Ingresa el monto de la factura");
     setLoading(true);
     try {
       const res = await fetch(`/api/cotizaciones/${quotationId}/invoices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newInvoice),
+        body: JSON.stringify({ 
+          number: `Factura ${invoices.length + 1}`, 
+          amount: parseFloat(newInvoiceAmount),
+          date: new Date().toISOString()
+        }),
       });
       if (res.ok) {
         setShowAddInvoice(false);
-        setNewInvoice({ number: '', amount: '', date: new Date().toISOString().split('T')[0] });
+        setNewInvoiceAmount('');
         router.refresh();
       }
     } catch (err) {
@@ -69,20 +72,23 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
   };
 
   const handleAddPayment = async (invoiceId: number) => {
-    if (!paymentAmount) return alert("Ingresa un monto");
+    const amount = paymentAmount[invoiceId];
+    const date = paymentDate[invoiceId] || new Date().toISOString().split('T')[0];
+    if (!amount) return alert("Ingresa un monto");
+    
     setLoading(true);
     try {
       const res = await fetch(`/api/cotizaciones/${quotationId}/payment`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          amount: parseFloat(paymentAmount),
-          date: paymentDate + 'T12:00:00',
+          amount: parseFloat(amount),
+          date: date + 'T12:00:00',
           invoiceId
         }),
       });
       if (res.ok) {
-        setPaymentAmount('');
+        setPaymentAmount({ ...paymentAmount, [invoiceId]: '' });
         router.refresh();
       }
     } catch (err) {
@@ -92,8 +98,29 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
     }
   };
 
+  const handleLiquidation = async (invoiceId: number, pendingAmount: number) => {
+    if (!confirm(`¿Confirmar liquidación total de esta factura por ${formatCurrency(pendingAmount)}?`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/cotizaciones/${quotationId}/payment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: pendingAmount,
+          date: new Date().toISOString().split('T')[0] + 'T12:00:00',
+          invoiceId
+        }),
+      });
+      if (res.ok) router.refresh();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteInvoice = async (id: number) => {
-    if (!confirm("¿Eliminar factura y sus pagos?")) return;
+    if (!confirm("¿Eliminar esta factura y todos sus registros de pago?")) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
@@ -110,176 +137,202 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Project Summary Card */}
-      <div className="card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+      <div className="card" style={{ 
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+        color: 'white',
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+        gap: '20px',
+        padding: '24px'
+      }}>
         <div>
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>TOTAL PROYECTO</p>
-          <p style={{ margin: '5px 0 0 0', fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary)' }}>{formatCurrency(projectTotal)}</p>
+          <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.8, fontWeight: '700' }}>MONTO DEL PROYECTO</p>
+          <p style={{ margin: '5px 0 0 0', fontSize: '1.5rem', fontWeight: '800' }}>{formatCurrency(projectTotal)}</p>
         </div>
-        <div>
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>TOTAL FACTURADO</p>
-          <p style={{ margin: '5px 0 0 0', fontSize: '1.4rem', fontWeight: '800', color: '#6366f1' }}>{formatCurrency(totalInvoiced)}</p>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: totalInvoiced > projectTotal ? '#ef4444' : '#10b981' }}>
-            {totalInvoiced > projectTotal ? 'Excede presupuesto' : `${formatCurrency(projectTotal - totalInvoiced)} por facturar`}
-          </p>
+        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+          <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.8, fontWeight: '700' }}>TOTAL FACTURADO</p>
+          <p style={{ margin: '5px 0 0 0', fontSize: '1.5rem', fontWeight: '800', color: '#818cf8' }}>{formatCurrency(totalInvoiced)}</p>
         </div>
-        <div>
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>TOTAL PAGADO</p>
-          <p style={{ margin: '5px 0 0 0', fontSize: '1.4rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(grandTotalPaid)}</p>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>Saldo Pendiente: {formatCurrency(projectTotal - grandTotalPaid)}</p>
+        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+          <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.8, fontWeight: '700' }}>TOTAL PAGADO</p>
+          <p style={{ margin: '5px 0 0 0', fontSize: '1.5rem', fontWeight: '800', color: '#4ade80' }}>{formatCurrency(grandTotalPaid)}</p>
+        </div>
+        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+          <p style={{ margin: 0, fontSize: '0.7rem', opacity: 0.8, fontWeight: '700' }}>SALDO RESTANTE</p>
+          <p style={{ margin: '5px 0 0 0', fontSize: '1.5rem', fontWeight: '800', color: '#f87171' }}>{formatCurrency(remainingProject)}</p>
         </div>
       </div>
 
-      {/* Invoices List */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-            <FileText size={20} color="var(--primary)" /> Control de Facturación
-          </h3>
-          <button onClick={() => setShowAddInvoice(!showAddInvoice)} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-            <Plus size={16} /> Nueva Factura
-          </button>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <FileText size={22} color="var(--primary)" /> Facturas del Proyecto
+        </h2>
+        <button 
+          onClick={() => setShowAddInvoice(!showAddInvoice)} 
+          className="btn btn-primary"
+          style={{ padding: '10px 20px' }}
+        >
+          <Plus size={18} /> Agregar Nueva Factura
+        </button>
+      </div>
 
-        {showAddInvoice && (
-          <div style={{ background: '#f1f5f9', padding: '20px', borderRadius: '12px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'end' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '5px' }}>NÚMERO DE FACTURA</label>
-              <input type="text" value={newInvoice.number} onChange={e => setNewInvoice({...newInvoice, number: e.target.value})} placeholder="Ej. F-123" />
+      {showAddInvoice && (
+        <div className="card" style={{ background: '#f1f5f9', border: '2px dashed #cbd5e1' }}>
+          <p style={{ margin: '0 0 15px 0', fontWeight: '700', fontSize: '0.9rem' }}>REGISTRAR MONTO DE NUEVA FACTURA</p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <DollarSign size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input 
+                type="number" 
+                value={newInvoiceAmount} 
+                onChange={e => setNewInvoiceAmount(e.target.value)} 
+                placeholder="Monto de la factura" 
+                style={{ paddingLeft: '40px', fontSize: '1.1rem' }}
+              />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '5px' }}>MONTO TOTAL</label>
-              <input type="number" value={newInvoice.amount} onChange={e => setNewInvoice({...newInvoice, amount: e.target.value})} placeholder="0.00" />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '5px' }}>FECHA</label>
-              <input type="date" value={newInvoice.date} onChange={e => setNewInvoice({...newInvoice, date: e.target.value})} />
-            </div>
-            <button onClick={handleAddInvoice} className="btn btn-primary" disabled={loading}>Guardar</button>
+            <button onClick={handleAddInvoice} className="btn btn-primary" disabled={loading} style={{ padding: '0 30px' }}>Crear Factura</button>
+            <button onClick={() => setShowAddInvoice(false)} className="btn btn-outline" style={{ background: 'white' }}>Cancelar</button>
           </div>
-        )}
+        </div>
+      )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {invoices.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>No hay facturas registradas en este proyecto.</p>
-          ) : (
-            invoices.map(inv => {
-              const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
-              const pending = Number(inv.amount) - paid;
-              const isFullyPaid = pending <= 0;
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        {invoices.map((inv, index) => {
+          const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
+          const pending = Number(inv.amount) - paid;
+          const isFullyPaid = pending <= 0;
 
-              return (
-                <div key={inv.id} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    padding: '16px', 
-                    background: expandedInvoice === inv.id ? '#f8fafc' : 'white',
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 150px 150px 150px auto', 
-                    alignItems: 'center', 
-                    gap: '20px' 
-                  }}>
-                    <div>
-                      <span style={{ fontWeight: '800', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        Factura {inv.number}
-                        {isFullyPaid ? <CheckCircle size={16} color="#10b981" /> : <Clock size={16} color="#f59e0b" />}
-                      </span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Emitida el {new Date(inv.date).toLocaleDateString('es-MX')}</span>
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>MONTO</p>
-                      <p style={{ margin: 0, fontWeight: '700' }}>{formatCurrency(Number(inv.amount))}</p>
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>PAGADO</p>
-                      <p style={{ margin: 0, fontWeight: '700', color: '#10b981' }}>{formatCurrency(paid)}</p>
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>PENDIENTE</p>
-                      <p style={{ margin: 0, fontWeight: '800', color: pending > 0 ? '#ef4444' : '#10b981' }}>{formatCurrency(pending)}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button 
-                        onClick={() => setExpandedInvoice(expandedInvoice === inv.id ? null : inv.id)}
-                        className="btn btn-outline" 
-                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                      >
-                        {expandedInvoice === inv.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        {expandedInvoice === inv.id ? 'Cerrar' : 'Pagos'}
-                      </button>
-                      <button onClick={() => handleDeleteInvoice(inv.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <Trash2 size={18} />
-                      </button>
+          return (
+            <div key={inv.id} className="card" style={{ 
+              padding: 0, 
+              overflow: 'hidden', 
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' 
+            }}>
+              {/* Invoice Header */}
+              <div style={{ 
+                padding: '20px 25px', 
+                background: '#f8fafc', 
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    Factura #{index + 1} - {formatCurrency(Number(inv.amount))}
+                    {isFullyPaid && <CheckCircle size={18} color="#10b981" />}
+                  </h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Creada el {new Date(inv.createdAt).toLocaleDateString('es-MX')}</span>
+                </div>
+                <button 
+                  onClick={() => handleDeleteInvoice(inv.id)} 
+                  style={{ color: '#ef4444', background: '#fee2e2', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', fontWeight: '600' }}
+                >
+                  <Trash2 size={16} /> Eliminar Factura
+                </button>
+              </div>
+
+              <div style={{ padding: '25px', display: 'grid', gridTemplateColumns: '300px 1fr', gap: '40px' }}>
+                {/* Left: Files and Quick Actions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)' }}>ARCHIVOS ADJUNTOS</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                      {inv.files.find(f => f.type === 'INVOICE_PDF') ? (
+                        <div style={{ padding: '10px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>PDF Factura</span>
+                          <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_PDF')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={20} /></a>
+                        </div>
+                      ) : (
+                        <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_PDF" label="Subir PDF" />
+                      )}
+                      {inv.files.find(f => f.type === 'INVOICE_XML') ? (
+                        <div style={{ padding: '10px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>XML Factura</span>
+                          <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_XML')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={20} /></a>
+                        </div>
+                      ) : (
+                        <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_XML" label="Subir XML" accept=".xml" />
+                      )}
                     </div>
                   </div>
 
-                  {expandedInvoice === inv.id && (
-                    <div style={{ padding: '20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
-                      {/* Files Section */}
-                      <div style={{ marginBottom: '24px' }}>
-                        <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>DOCUMENTOS DE ESTA FACTURA</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                          <div>
-                            {inv.files.find(f => f.type === 'INVOICE_PDF') ? (
-                              <div style={{ padding: '10px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.85rem' }}>PDF: {inv.files.find(f => f.type === 'INVOICE_PDF')?.filename}</span>
-                                <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_PDF')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={18} /></a>
-                              </div>
-                            ) : (
-                              <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_PDF" label="Subir PDF Factura" />
-                            )}
-                          </div>
-                          <div>
-                            {inv.files.find(f => f.type === 'INVOICE_XML') ? (
-                              <div style={{ padding: '10px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.85rem' }}>XML: {inv.files.find(f => f.type === 'INVOICE_XML')?.filename}</span>
-                                <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_XML')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={18} /></a>
-                              </div>
-                            ) : (
-                              <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_XML" label="Subir XML Factura" accept=".xml" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', marginBottom: '20px' }}>
-                        <div style={{ position: 'relative' }}>
-                          <DollarSign size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                          <input type="number" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} placeholder="Monto del abono" style={{ paddingLeft: '35px' }} />
-                        </div>
-                        <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
-                        <button onClick={() => handleAddPayment(inv.id)} className="btn btn-primary" disabled={loading}>Registrar Pago</button>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>HISTORIAL DE PAGOS DE ESTA FACTURA</p>
-                        {inv.payments.length === 0 ? (
-                          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sin pagos registrados.</p>
-                        ) : (
-                          inv.payments.map(p => (
-                            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'white', padding: '10px 15px', borderRadius: '8px', border: '1px solid #edf2f7' }}>
-                              <span style={{ fontWeight: '700', color: '#059669' }}>{formatCurrency(Number(p.amount))}</span>
-                              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <div style={{ marginTop: 'auto' }}>
+                    <button 
+                      onClick={() => handleLiquidation(inv.id, pending)}
+                      className="btn btn-primary" 
+                      style={{ width: '100%', background: isFullyPaid ? '#94a3b8' : '#22c55e', border: 'none' }}
+                      disabled={isFullyPaid || loading}
+                    >
+                      <CheckCircle size={18} /> {isFullyPaid ? 'Liquidada' : 'Liquidar Factura'}
+                    </button>
+                  </div>
                 </div>
-              );
-            })
-          )}
-        </div>
+
+                {/* Right: Payment Management (Like Normal Mode) */}
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', marginBottom: '25px' }}>
+                    <div style={{ position: 'relative' }}>
+                      <DollarSign size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                      <input 
+                        type="number" 
+                        value={paymentAmount[inv.id] || ''} 
+                        onChange={e => setPaymentAmount({ ...paymentAmount, [inv.id]: e.target.value })} 
+                        placeholder="Monto abono" 
+                        style={{ paddingLeft: '35px' }}
+                        disabled={isFullyPaid}
+                      />
+                    </div>
+                    <input 
+                      type="date" 
+                      value={paymentDate[inv.id] || new Date().toISOString().split('T')[0]} 
+                      onChange={e => setPaymentDate({ ...paymentDate, [inv.id]: e.target.value })} 
+                      disabled={isFullyPaid}
+                    />
+                    <button 
+                      onClick={() => handleAddPayment(inv.id)} 
+                      className="btn btn-outline" 
+                      style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                      disabled={isFullyPaid || loading}
+                    >
+                      Registrar Abono
+                    </button>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>HISTORIAL DE ESTA FACTURA</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '700' }}>PENDIENTE: <span style={{ color: pending > 0 ? '#ef4444' : '#10b981' }}>{formatCurrency(pending)}</span></span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
+                      {inv.payments.length === 0 ? (
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '10px' }}>Sin pagos aún</p>
+                      ) : (
+                        inv.payments.map(p => (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', background: '#f8fafc', padding: '10px 15px', borderRadius: '8px' }}>
+                            <span style={{ fontWeight: '700', color: '#059669' }}>{formatCurrency(Number(p.amount))}</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* General Payments (Legacy or Non-Invoice) */}
       {generalPayments.length > 0 && (
-        <div className="card" style={{ opacity: 0.8 }}>
-          <h4 style={{ margin: '0 0 15px 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Pagos Generales (Sin Factura)</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="card" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+          <p style={{ margin: '0 0 10px 0', fontSize: '0.8rem', fontWeight: '700', color: '#92400e' }}>PAGOS GENERALES (SIN FACTURA ASIGNADA)</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
             {generalPayments.map(p => (
-              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                <span>{formatCurrency(Number(p.amount))}</span>
-                <span style={{ color: 'var(--text-muted)' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
+              <div key={p.id} style={{ background: 'white', padding: '8px 15px', borderRadius: '8px', border: '1px solid #fef3c7' }}>
+                <span style={{ fontWeight: '700' }}>{formatCurrency(Number(p.amount))}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '10px' }}>{new Date(p.date).toLocaleDateString('es-MX')}</span>
               </div>
             ))}
           </div>
