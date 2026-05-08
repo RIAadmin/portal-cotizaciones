@@ -73,6 +73,7 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
           pdfData.append('file', pdfFile);
           pdfData.append('type', 'INVOICE_PDF');
           pdfData.append('invoiceId', invoice.id.toString());
+          pdfData.append('quotationId', quotationId.toString()); // FIX: Added quotationId
           await fetch(`/api/cotizaciones/upload`, { method: 'POST', body: pdfData });
         }
 
@@ -82,6 +83,7 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
           xmlData.append('file', xmlFile);
           xmlData.append('type', 'INVOICE_XML');
           xmlData.append('invoiceId', invoice.id.toString());
+          xmlData.append('quotationId', quotationId.toString()); // FIX: Added quotationId
           await fetch(`/api/cotizaciones/upload`, { method: 'POST', body: xmlData });
         }
 
@@ -103,6 +105,9 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
     const amount = paymentAmount[invoiceId];
     const date = paymentDate[invoiceId] || new Date().toISOString().split('T')[0];
     if (!amount) return alert("Ingresa un monto");
+
+    // CONFIRMATION DIALOG LIKE NORMAL MODE
+    if (!confirm(`¿Confirmas que el depósito por ${formatCurrency(parseFloat(amount))} ya se realizó?`)) return;
     
     setLoading(true);
     try {
@@ -127,7 +132,7 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
   };
 
   const handleLiquidation = async (invoiceId: number, pendingAmount: number) => {
-    if (!confirm(`¿Confirmar liquidación total de esta factura por ${formatCurrency(pendingAmount)}?`)) return;
+    if (!confirm(`¿Confirmas que ya se realizó el depósito para la liquidación total por ${formatCurrency(pendingAmount)}?`)) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/cotizaciones/${quotationId}/payment`, {
