@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload } from 'lucide-react';
+import { Upload, Check } from 'lucide-react';
 
 interface Props {
   quotationId: number;
@@ -15,6 +15,7 @@ interface Props {
 
 export default function DocumentUploader({ quotationId, invoiceId, type, label, accept = ".pdf", disabled = false }: Props) {
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
 
   if (disabled) return null;
@@ -34,10 +35,14 @@ export default function DocumentUploader({ quotationId, invoiceId, type, label, 
       });
 
       if (res.ok) {
-        router.refresh();
+        setShowSuccess(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (err) {
       console.error(err);
+      alert("Error al subir archivo");
     } finally {
       setLoading(false);
     }
@@ -62,6 +67,36 @@ export default function DocumentUploader({ quotationId, invoiceId, type, label, 
 
   return (
     <div>
+      {showSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(255,255,255,0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: '#10b981',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            marginBottom: '15px',
+          }}>
+            <Check size={50} strokeWidth={3} />
+          </div>
+          <h3 style={{ color: '#065f46', margin: 0 }}>¡Subido con éxito!</h3>
+        </div>
+      )}
       <input 
         type="file" 
         accept={accept} 
