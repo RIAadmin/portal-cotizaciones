@@ -32,6 +32,9 @@ export default async function CobranzaPage() {
       client: true,
       invoices: {
         include: { payments: true }
+      },
+      payments: {
+        where: { invoiceId: null }
       }
     },
     orderBy: { createdAt: 'desc' }
@@ -61,7 +64,15 @@ export default async function CobranzaPage() {
     }
     
     const totalAmount = Number(q.total || 0);
-    const advanceAmount = Number(q.advance || 0);
+    
+    // Calculate advance from all invoices and their payments + general payments
+    const invoicePayments = q.invoices.reduce((sum, inv) => {
+      return sum + inv.payments.reduce((s, p) => s + Number(p.amount), 0);
+    }, 0);
+    
+    const generalPaymentsTotal = q.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    
+    const advanceAmount = invoicePayments + generalPaymentsTotal; 
     const pendingAmount = totalAmount - advanceAmount;
 
     collectionByClient[clientId].totalProjects += totalAmount;
