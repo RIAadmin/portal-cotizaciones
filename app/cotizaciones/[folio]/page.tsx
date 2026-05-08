@@ -153,33 +153,45 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               )}
             </div>
             
-            {/* General Invoice Files (Legacy) */}
-            {(invoicePdf || invoiceXml) && (
-              <div className="card" style={{ borderLeft: '4px solid #6366f1' }}>
-                <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Receipt size={20} /> Factura General (Histórico)
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {invoicePdf && (
-                    <div style={{ padding: '10px', background: '#f5f3ff', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>PDF Factura: {invoicePdf.filename}</span>
-                      <a href={`/api/files/${invoicePdf.id}`} target="_blank" style={{ color: '#6366f1' }} title="Ver PDF">
-                        <Eye size={18} />
-                      </a>
-                    </div>
-                  )}
-                  {invoiceXml && (
-                    <div style={{ padding: '10px', background: '#f5f3ff', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>XML Factura: {invoiceXml.filename}</span>
-                      <a href={`/api/files/${invoiceXml.id}`} target="_blank" style={{ color: '#6366f1' }} title="Ver XML">
-                        <Eye size={18} />
-                      </a>
-                    </div>
-                  )}
-                  <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>* Estos archivos se subieron antes del nuevo sistema de facturas múltiples.</p>
-                </div>
+            <div className="card">
+              <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Receipt size={20} /> Factura (PDF y XML)
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {invoicePdf ? (
+                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>PDF Factura: {invoicePdf.filename}</span>
+                    <a href={`/api/files/${invoicePdf.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver PDF">
+                      <Eye size={18} />
+                    </a>
+                  </div>
+                ) : (
+                  <DocumentUploader 
+                    quotationId={quotation.id} 
+                    type="INVOICE_PDF" 
+                    label="Subir PDF Factura"
+                    disabled={quotation.isPaid}
+                  />
+                )}
+
+                {invoiceXml ? (
+                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>XML Factura: {invoiceXml.filename}</span>
+                    <a href={`/api/files/${invoiceXml.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver XML">
+                      <Eye size={18} />
+                    </a>
+                  </div>
+                ) : (
+                  <DocumentUploader 
+                    quotationId={quotation.id} 
+                    type="INVOICE_XML" 
+                    label="Subir XML Factura"
+                    accept=".xml"
+                    disabled={quotation.isPaid}
+                  />
+                )}
               </div>
-            )}
+            </div>
 
             <InvoiceManagement 
               quotationId={quotation.id}
