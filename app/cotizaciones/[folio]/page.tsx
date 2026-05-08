@@ -38,7 +38,8 @@ export default async function QuotationDetailPage({ params }: PageProps) {
       },
       invoices: {
         include: {
-          payments: true
+          payments: true,
+          files: true
         },
         orderBy: { date: 'desc' }
       }
@@ -166,6 +167,11 @@ export default async function QuotationDetailPage({ params }: PageProps) {
                   amount: Number(p.amount),
                   date: p.date.toISOString(),
                   invoiceId: p.invoiceId
+                })),
+                files: inv.files.map(f => ({
+                  id: f.id,
+                  type: f.type,
+                  filename: f.filename
                 }))
               }))}
               generalPayments={quotation.payments.filter(p => !p.invoiceId).map(p => ({

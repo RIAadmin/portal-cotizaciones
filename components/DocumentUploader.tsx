@@ -6,13 +6,14 @@ import { Upload } from 'lucide-react';
 
 interface Props {
   quotationId: number;
+  invoiceId?: number;
   type: 'QUOTATION' | 'OC' | 'INVOICE_PDF' | 'INVOICE_XML';
   label: string;
   accept?: string;
   disabled?: boolean;
 }
 
-export default function DocumentUploader({ quotationId, type, label, accept = ".pdf", disabled = false }: Props) {
+export default function DocumentUploader({ quotationId, invoiceId, type, label, accept = ".pdf", disabled = false }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -23,6 +24,7 @@ export default function DocumentUploader({ quotationId, type, label, accept = ".
     const formData = new FormData();
     formData.append('file', file);
     formData.append('quotationId', quotationId.toString());
+    if (invoiceId) formData.append('invoiceId', invoiceId.toString());
     formData.append('type', type);
 
     try {
@@ -64,12 +66,12 @@ export default function DocumentUploader({ quotationId, type, label, accept = ".
         type="file" 
         accept={accept} 
         onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
-        id={`upload-${type}`}
+        id={`upload-${type}-${invoiceId || 'general'}`}
         style={{ display: 'none' }}
         disabled={loading}
       />
       <label 
-        htmlFor={`upload-${type}`} 
+        htmlFor={`upload-${type}-${invoiceId || 'general'}`} 
         className="btn btn-outline" 
         style={{ width: '100%', marginBottom: type === 'OC' ? '8px' : '0' }}
       >

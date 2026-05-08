@@ -12,6 +12,8 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const quotationId = parseInt(formData.get("quotationId") as string);
+    const invoiceIdRaw = formData.get("invoiceId");
+    const invoiceId = invoiceIdRaw ? parseInt(invoiceIdRaw as string) : null;
     const type = formData.get("type") as any;
     const file = formData.get("file") as File;
 
@@ -29,6 +31,7 @@ export async function POST(req: Request) {
         data: base64Data,
         filename,
         quotationId,
+        invoiceId
       }
     });
 

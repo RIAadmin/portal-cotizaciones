@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Plus, DollarSign, Calendar, ChevronDown, ChevronUp, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Plus, DollarSign, Calendar, ChevronDown, ChevronUp, Trash2, CheckCircle, Clock, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import DocumentUploader from './DocumentUploader';
 
 interface Payment {
   id: number;
@@ -18,6 +19,7 @@ interface Invoice {
   date: string;
   status: string;
   payments: Payment[];
+  files: Array<{ id: number, type: string, filename: string }>;
 }
 
 interface Props {
@@ -211,6 +213,33 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
 
                   {expandedInvoice === inv.id && (
                     <div style={{ padding: '20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                      {/* Files Section */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>DOCUMENTOS DE ESTA FACTURA</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                          <div>
+                            {inv.files.find(f => f.type === 'INVOICE_PDF') ? (
+                              <div style={{ padding: '10px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.85rem' }}>PDF: {inv.files.find(f => f.type === 'INVOICE_PDF')?.filename}</span>
+                                <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_PDF')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={18} /></a>
+                              </div>
+                            ) : (
+                              <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_PDF" label="Subir PDF Factura" />
+                            )}
+                          </div>
+                          <div>
+                            {inv.files.find(f => f.type === 'INVOICE_XML') ? (
+                              <div style={{ padding: '10px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.85rem' }}>XML: {inv.files.find(f => f.type === 'INVOICE_XML')?.filename}</span>
+                                <a href={`/api/files/${inv.files.find(f => f.type === 'INVOICE_XML')?.id}`} target="_blank" style={{ color: 'var(--primary)' }}><Eye size={18} /></a>
+                              </div>
+                            ) : (
+                              <DocumentUploader quotationId={quotationId} invoiceId={inv.id} type="INVOICE_XML" label="Subir XML Factura" accept=".xml" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', marginBottom: '20px' }}>
                         <div style={{ position: 'relative' }}>
                           <DollarSign size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />

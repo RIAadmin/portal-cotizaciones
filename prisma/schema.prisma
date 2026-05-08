@@ -90,6 +90,7 @@ model Invoice {
   quotation   Quotation @relation(fields: [quotationId], references: [id])
   quotationId Int
   payments    Payment[]
+  files       QuotationFile[]
   createdAt   DateTime  @default(now())
 }
 
@@ -108,5 +109,7 @@ model QuotationFile {
   filename    String
   quotation   Quotation @relation(fields: [quotationId], references: [id])
   quotationId Int
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoiceId   Int?
   createdAt   DateTime  @default(now())
 }
