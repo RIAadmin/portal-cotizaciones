@@ -155,7 +155,7 @@ export default async function QuotationDetailPage({ params }: PageProps) {
             
             <div className="card">
               <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Receipt size={20} /> Factura (PDF y XML)
+                <Receipt size={20} /> {quotation.isProject ? 'Factura General (Opcional)' : 'Factura (PDF y XML)'}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {invoicePdf ? (
@@ -193,33 +193,44 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <InvoiceManagement 
-              quotationId={quotation.id}
-              projectTotal={Number(quotation.total || 0)}
-              initialInvoices={quotation.invoices.map(inv => ({
-                id: inv.id,
-                number: inv.number,
-                amount: Number(inv.amount),
-                date: inv.date.toISOString(),
-                status: inv.status,
-                payments: inv.payments.map(p => ({
+            {quotation.isProject ? (
+              <InvoiceManagement 
+                quotationId={quotation.id}
+                projectTotal={Number(quotation.total || 0)}
+                initialInvoices={quotation.invoices.map(inv => ({
+                  id: inv.id,
+                  number: inv.number,
+                  amount: Number(inv.amount),
+                  date: inv.date.toISOString(),
+                  status: inv.status,
+                  payments: inv.payments.map(p => ({
+                    id: p.id,
+                    amount: Number(p.amount),
+                    date: p.date.toISOString(),
+                    invoiceId: p.invoiceId
+                  })),
+                  files: inv.files.map(f => ({
+                    id: f.id,
+                    type: f.type,
+                    filename: f.filename
+                  }))
+                }))}
+                generalPayments={quotation.payments.filter(p => !p.invoiceId).map(p => ({
                   id: p.id,
                   amount: Number(p.amount),
-                  date: p.date.toISOString(),
-                  invoiceId: p.invoiceId
-                })),
-                files: inv.files.map(f => ({
-                  id: f.id,
-                  type: f.type,
-                  filename: f.filename
-                }))
-              }))}
-              generalPayments={quotation.payments.filter(p => !p.invoiceId).map(p => ({
-                id: p.id,
-                amount: Number(p.amount),
-                date: p.date.toISOString()
-              }))}
-            />
+                  date: p.date.toISOString()
+                }))}
+              />
+            ) : (
+              <PaymentManagement 
+                quotationId={quotation.id} 
+                totalAmount={Number(quotation.total || 0)} 
+                payments={quotation.payments.map(p => ({
+                  ...p,
+                  amount: Number(p.amount)
+                }))} 
+              />
+            )}
           </div>
         </div>
       </main>

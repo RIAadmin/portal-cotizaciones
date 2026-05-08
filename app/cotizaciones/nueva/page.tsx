@@ -37,6 +37,7 @@ export default function NewQuotationPage() {
     formData.append('clientId', clientId);
     formData.append('description', description);
     formData.append('total', total);
+    formData.append('isProject', isProjectMode.toString());
     if (file) formData.append('file', file);
     if (isFastTrack || isProjectMode) formData.append('status', 'OC_UPLOADED');
 

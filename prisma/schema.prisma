@@ -54,6 +54,7 @@ model Quotation {
   updates     QuotationUpdate[]
   payments    Payment[]
   invoices    Invoice[]
+  isProject   Boolean         @default(false)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 }

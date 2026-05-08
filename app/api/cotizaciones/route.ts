@@ -55,6 +55,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Error de sesión: Usuario no identificado" }, { status: 401 });
     }
 
+    const isProject = formData.get("isProject") === "true";
+
     const quotation = await prisma.quotation.create({
       data: {
         folio,
@@ -64,7 +66,8 @@ export async function POST(req: Request) {
         userId: userId,
         status: status as any,
         progress: 0,
-        isPaid: false
+        isPaid: false,
+        isProject
       }
     });
 
