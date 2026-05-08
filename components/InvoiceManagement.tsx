@@ -49,6 +49,8 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
   const grandTotalPaid = totalPaidInvoices + totalGeneralPaid;
   const remainingProject = projectTotal - grandTotalPaid;
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleAddInvoice = async () => {
     if (!newInvoiceAmount) return alert("Ingresa el monto de la factura");
     setLoading(true);
@@ -73,7 +75,7 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
           pdfData.append('file', pdfFile);
           pdfData.append('type', 'INVOICE_PDF');
           pdfData.append('invoiceId', invoice.id.toString());
-          pdfData.append('quotationId', quotationId.toString()); // FIX: Added quotationId
+          pdfData.append('quotationId', quotationId.toString()); 
           await fetch(`/api/cotizaciones/upload`, { method: 'POST', body: pdfData });
         }
 
@@ -83,7 +85,7 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
           xmlData.append('file', xmlFile);
           xmlData.append('type', 'INVOICE_XML');
           xmlData.append('invoiceId', invoice.id.toString());
-          xmlData.append('quotationId', quotationId.toString()); // FIX: Added quotationId
+          xmlData.append('quotationId', quotationId.toString()); 
           await fetch(`/api/cotizaciones/upload`, { method: 'POST', body: xmlData });
         }
 
@@ -91,7 +93,12 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
         setNewInvoiceAmount('');
         setPdfFile(null);
         setXmlFile(null);
-        router.refresh();
+        
+        // SHOW SUCCESS AND RELOAD
+        setShowSuccess(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (err) {
       console.error(err);
@@ -106,7 +113,6 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
     const date = paymentDate[invoiceId] || new Date().toISOString().split('T')[0];
     if (!amount) return alert("Ingresa un monto");
 
-    // CONFIRMATION DIALOG LIKE NORMAL MODE
     if (!confirm(`¿Confirmas que el depósito por ${formatCurrency(parseFloat(amount))} ya se realizó?`)) return;
     
     setLoading(true);
@@ -122,8 +128,10 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
       });
       if (res.ok) {
         setPaymentAmount({ ...paymentAmount, [invoiceId]: '' });
-        alert("¡Abono registrado correctamente!");
-        router.refresh();
+        setShowSuccess(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (err) {
       console.error(err);
@@ -150,8 +158,10 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
         }),
       });
       if (res.ok) {
-        alert("¡Factura liquidada correctamente!");
-        router.refresh();
+        setShowSuccess(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (err) {
       console.error(err);
@@ -178,6 +188,41 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+      {/* Success Overlay */}
+      {showSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(255,255,255,0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            width: '100px',
+            height: '100px',
+            borderRadius: '50%',
+            background: '#10b981',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            marginBottom: '20px',
+            boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)'
+          }}>
+            <Check size={60} strokeWidth={3} />
+          </div>
+          <h2 style={{ color: '#065f46', fontSize: '1.5rem', fontWeight: '800' }}>¡Operación Exitosa!</h2>
+          <p style={{ color: '#065f46', opacity: 0.8 }}>Refrescando panel...</p>
+        </div>
+      )}
+
       {/* 1. Vertical Header Summary */}
       <div className="card" style={{ 
         background: '#0f172a', 
