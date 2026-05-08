@@ -28,7 +28,12 @@ export default async function CobranzaPage() {
         { isPaid: false }
       ]
     },
-    include: { client: true },
+    include: { 
+      client: true,
+      invoices: {
+        include: { payments: true }
+      }
+    },
     orderBy: { createdAt: 'desc' }
   });
 

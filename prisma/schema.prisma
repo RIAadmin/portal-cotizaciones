@@ -53,6 +53,7 @@ model Quotation {
   files       QuotationFile[]
   updates     QuotationUpdate[]
   payments    Payment[]
+  invoices    Invoice[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 }
@@ -72,9 +73,24 @@ model Payment {
   id          Int       @id @default(autoincrement())
   amount      Decimal   @db.Decimal(10, 2)
   date        DateTime
+  note        String?   @db.Text
   createdAt   DateTime  @default(now())
   quotation   Quotation @relation(fields: [quotationId], references: [id])
   quotationId Int
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoiceId   Int?
+}
+
+model Invoice {
+  id          Int       @id @default(autoincrement())
+  number      String
+  amount      Decimal   @db.Decimal(10, 2)
+  date        DateTime
+  status      String    @default("PENDIENTE") // PENDIENTE, PAGADA
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  quotationId Int
+  payments    Payment[]
+  createdAt   DateTime  @default(now())
 }
 
 enum FileType {

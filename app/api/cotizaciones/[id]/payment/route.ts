@@ -21,7 +21,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { amount, date, isPaid, paidAt } = body;
+    const { amount, date, isPaid, paidAt, invoiceId } = body;
 
     const result = await prisma.$transaction(async (tx) => {
       const currentQuotation = await tx.quotation.findUnique({
@@ -40,7 +40,8 @@ export async function PATCH(
           data: {
             amount: amount,
             date: date ? new Date(date) : new Date(),
-            quotationId: id
+            quotationId: id,
+            invoiceId: invoiceId ? parseInt(invoiceId) : undefined
           }
         });
 

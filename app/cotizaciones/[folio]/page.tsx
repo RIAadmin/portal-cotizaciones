@@ -10,6 +10,7 @@ import PaymentManagement from '@/components/PaymentManagement';
 import ProgressTracker from '@/components/ProgressTracker';
 import EditableAmount from '@/components/EditableAmount';
 import QuotationFilesManager from '@/components/QuotationFilesManager';
+import InvoiceManagement from '@/components/InvoiceManagement';
 
 interface PageProps {
   params: Promise<{ folio: string }>;
@@ -34,6 +35,12 @@ export default async function QuotationDetailPage({ params }: PageProps) {
       updates: {
         include: { user: true },
         orderBy: { createdAt: 'desc' }
+      },
+      invoices: {
+        include: {
+          payments: true
+        },
+        orderBy: { date: 'desc' }
       }
     },
   });
@@ -145,55 +152,27 @@ export default async function QuotationDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="card">
-              <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Receipt size={20} /> Factura (PDF y XML)
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {invoicePdf ? (
-                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>PDF Factura: {invoicePdf.filename}</span>
-                    <a href={`/api/files/${invoicePdf.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver PDF">
-                      <Eye size={18} />
-                    </a>
-                  </div>
-                ) : (
-                  <DocumentUploader 
-                    quotationId={quotation.id} 
-                    type="INVOICE_PDF" 
-                    label="Subir PDF Factura"
-                    disabled={quotation.isPaid}
-                  />
-                )}
-
-                {invoiceXml ? (
-                  <div style={{ padding: '10px', background: 'var(--secondary)', borderRadius: 'var(--radius)', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>XML Factura: {invoiceXml.filename}</span>
-                    <a href={`/api/files/${invoiceXml.id}`} target="_blank" style={{ color: 'var(--primary)' }} title="Ver XML">
-                      <Eye size={18} />
-                    </a>
-                  </div>
-                ) : (
-                  <DocumentUploader 
-                    quotationId={quotation.id} 
-                    type="INVOICE_XML" 
-                    label="Subir XML Factura"
-                    accept=".xml"
-                    disabled={quotation.isPaid}
-                  />
-                )}
-              </div>
-            </div>
-
-            <PaymentManagement 
-              quotationId={quotation.id} 
-              payments={quotation.payments.map(p => ({
+            <InvoiceManagement 
+              quotationId={quotation.id}
+              projectTotal={Number(quotation.total || 0)}
+              initialInvoices={quotation.invoices.map(inv => ({
+                id: inv.id,
+                number: inv.number,
+                amount: Number(inv.amount),
+                date: inv.date.toISOString(),
+                status: inv.status,
+                payments: inv.payments.map(p => ({
+                  id: p.id,
+                  amount: Number(p.amount),
+                  date: p.date.toISOString(),
+                  invoiceId: p.invoiceId
+                }))
+              }))}
+              generalPayments={quotation.payments.filter(p => !p.invoiceId).map(p => ({
                 id: p.id,
                 amount: Number(p.amount),
                 date: p.date.toISOString()
               }))}
-              isPaid={quotation.isPaid} 
-              initialPaidAt={quotation.paidAt ? quotation.paidAt.toISOString() : null}
             />
           </div>
         </div>

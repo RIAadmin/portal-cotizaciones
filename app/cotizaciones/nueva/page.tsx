@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useRouter } from 'next/navigation';
-import { Upload, Save, CheckCircle2, Zap, FileText } from 'lucide-react';
+import { Upload, Save, CheckCircle2, Zap, FileText, Briefcase } from 'lucide-react';
 
 export default function NewQuotationPage() {
   const [clients, setClients] = useState<any[]>([]);
@@ -12,6 +12,7 @@ export default function NewQuotationPage() {
   const [total, setTotal] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isFastTrack, setIsFastTrack] = useState(false);
+  const [isProjectMode, setIsProjectMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function NewQuotationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientId) return alert("Por favor selecciona un cliente");
-    if (!isFastTrack && !file) return alert("Por favor sube el PDF de la cotización o usa el modo 'Ir directo a OC'");
+    if (!isFastTrack && !isProjectMode && !file) return alert("Por favor sube el PDF de la cotización o usa el modo 'Proyecto'");
     
     setLoading(true);
 
@@ -37,7 +38,7 @@ export default function NewQuotationPage() {
     formData.append('description', description);
     formData.append('total', total);
     if (file) formData.append('file', file);
-    if (isFastTrack) formData.append('status', 'OC_UPLOADED');
+    if (isFastTrack || isProjectMode) formData.append('status', 'OC_UPLOADED');
 
     try {
       const res = await fetch('/api/cotizaciones', {
@@ -69,7 +70,7 @@ export default function NewQuotationPage() {
         <div className="card" style={{ textAlign: 'center', padding: '50px' }}>
           <CheckCircle2 size={80} color="var(--success)" style={{ marginBottom: '20px' }} />
           <h2 style={{ color: 'var(--primary)', marginBottom: '10px' }}>¡Registro Exitoso!</h2>
-          <p style={{ color: 'var(--text-muted)' }}>{isFastTrack ? 'Proyecto creado directo para OC.' : 'Cotización guardada.'} Redirigiendo...</p>
+          <p style={{ color: 'var(--text-muted)' }}>{isProjectMode ? 'Proyecto creado correctamente.' : (isFastTrack ? 'Proyecto creado directo para OC.' : 'Cotización guardada.')} Redirigiendo...</p>
         </div>
       </div>
     );
@@ -140,31 +141,38 @@ export default function NewQuotationPage() {
               )}
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '15px' }} disabled={loading}>
-                {isFastTrack ? <Zap size={22} /> : <Save size={22} />}
-                {loading ? 'Procesando...' : (isFastTrack ? 'Registrar Proyecto con OC' : 'Guardar Cotización')}
+                {isProjectMode ? <Briefcase size={22} /> : (isFastTrack ? <Zap size={22} /> : <Save size={22} />)}
+                {loading ? 'Procesando...' : (isProjectMode ? 'Crear Proyecto' : (isFastTrack ? 'Registrar Proyecto con OC' : 'Guardar Cotización'))}
               </button>
             </form>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className={`card ${isFastTrack ? 'border-primary' : ''}`} style={{ transition: 'all 0.3s ease', cursor: 'pointer', border: isFastTrack ? '2px solid var(--primary)' : '2px solid transparent' }} onClick={() => setIsFastTrack(!isFastTrack)}>
+            <div 
+              className={`card ${isProjectMode ? 'border-primary' : ''}`} 
+              style={{ transition: 'all 0.3s ease', cursor: 'pointer', border: isProjectMode ? '2px solid var(--primary)' : '2px solid transparent' }} 
+              onClick={() => {
+                setIsProjectMode(!isProjectMode);
+                setIsFastTrack(false);
+              }}
+            >
                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
-                  <div style={{ background: isFastTrack ? 'var(--primary)' : 'var(--secondary)', color: isFastTrack ? 'white' : 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
-                    <Zap size={24} />
+                  <div style={{ background: isProjectMode ? 'var(--primary)' : 'var(--secondary)', color: isProjectMode ? 'white' : 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
+                    <Briefcase size={24} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>¿Ya tienes la OC?</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Activa esta opción para omitir el PDF de cotización e ir directo a subir la Orden de Compra.</p>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>Modo Proyecto Directo</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Crea un proyecto omitiendo la cotización. Ideal para trabajos ya aprobados.</p>
                   </div>
                </div>
                <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                 <input type="checkbox" checked={isFastTrack} onChange={() => {}} style={{ width: '18px', height: '18px' }} />
-                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>Ir directo a OC</span>
+                 <input type="checkbox" checked={isProjectMode} onChange={() => {}} style={{ width: '18px', height: '18px' }} />
+                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>Crear como Proyecto</span>
                </div>
             </div>
 
             <div className="card" style={{ background: 'var(--secondary)', color: 'var(--primary)', fontSize: '0.85rem' }}>
-              <p><strong>Info:</strong> El modo normal crea la cotización como "Pendiente". El modo rápido la crea como "Con OC" para que puedas subir la factura de inmediato.</p>
+              <p><strong>Info:</strong> El modo Proyecto te permite gestionar múltiples facturas y pagos desde el inicio.</p>
             </div>
           </div>
         </div>
