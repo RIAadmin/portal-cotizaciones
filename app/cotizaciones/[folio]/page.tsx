@@ -213,7 +213,8 @@ export default async function QuotationDetailPage({ params }: PageProps) {
                     id: f.id,
                     type: f.type,
                     filename: f.filename
-                  }))
+                  })),
+                  createdAt: inv.createdAt.toISOString()
                 }))}
                 generalPayments={quotation.payments.filter(p => !p.invoiceId).map(p => ({
                   id: p.id,

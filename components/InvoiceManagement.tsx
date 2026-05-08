@@ -20,6 +20,7 @@ interface Invoice {
   status: string;
   payments: Payment[];
   files: Array<{ id: number, type: string, filename: string }>;
+  createdAt: string;
 }
 
 interface Props {
