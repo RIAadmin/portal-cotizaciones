@@ -59,7 +59,30 @@ export async function PATCH(
 
       if (isPaid !== undefined) {
         updateData.isPaid = isPaid;
-        if (paidAt) updateData.paidAt = new Date(paidAt);
+        if (paidAt) {
+          const paidDate = new Date(paidAt);
+          updateData.paidAt = paidDate;
+          
+          if (isPaid === true) {
+            // Calculate remaining balance to create a final payment record
+            const totalPayments = await tx.payment.findMany({
+              where: { quotationId: id }
+            });
+            const alreadyPaid = totalPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+            const remaining = Number(currentQuotation.total || 0) - alreadyPaid;
+            
+            if (remaining > 0) {
+              await tx.payment.create({
+                data: {
+                  amount: remaining,
+                  date: paidDate,
+                  quotationId: id
+                }
+              });
+              updateData.advance = Number(currentQuotation.total || 0);
+            }
+          }
+        }
       }
 
       return await tx.quotation.update({
