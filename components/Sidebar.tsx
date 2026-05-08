@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, DollarSign, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, DollarSign, LogOut, TrendingUp } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export default function Sidebar() {
@@ -11,6 +11,7 @@ export default function Sidebar() {
   const links = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Clientes', href: '/clientes', icon: Users },
+    { name: 'Ingresos', href: '/depositos', icon: TrendingUp },
     { name: 'Cobranza', href: '/cobranza', icon: DollarSign },
   ];
 
