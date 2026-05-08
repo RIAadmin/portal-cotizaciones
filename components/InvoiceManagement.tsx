@@ -164,28 +164,28 @@ export default function InvoiceManagement({ quotationId, projectTotal, initialIn
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-      {/* 1. Header Summary */}
+      {/* 1. Vertical Header Summary */}
       <div className="card" style={{ 
-        background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)', 
+        background: '#0f172a', 
         color: 'white',
-        padding: '30px',
-        borderRadius: '20px',
-        display: 'grid', 
-        gridTemplateColumns: '1fr 1fr 1fr', 
-        gap: '20px',
-        textAlign: 'center'
+        padding: '25px',
+        borderRadius: '18px',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px'
       }}>
-        <div>
-          <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7, fontWeight: '700' }}>TOTAL PROYECTO</p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '1.8rem', fontWeight: '900' }}>{formatCurrency(projectTotal)}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <span style={{ fontSize: '0.85rem', opacity: 0.7, fontWeight: '700' }}>TOTAL PROYECTO</span>
+          <span style={{ fontSize: '1.4rem', fontWeight: '900' }}>{formatCurrency(projectTotal)}</span>
         </div>
-        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-          <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7, fontWeight: '700' }}>TOTAL PAGADO</p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '1.8rem', fontWeight: '900', color: '#4ade80' }}>{formatCurrency(grandTotalPaid)}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <span style={{ fontSize: '0.85rem', opacity: 0.7, fontWeight: '700' }}>TOTAL PAGADO</span>
+          <span style={{ fontSize: '1.4rem', fontWeight: '900', color: '#4ade80' }}>{formatCurrency(grandTotalPaid)}</span>
         </div>
-        <div>
-          <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7, fontWeight: '700' }}>RESTANTE</p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '1.8rem', fontWeight: '900', color: '#f87171' }}>{formatCurrency(remainingProject)}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
+          <span style={{ fontSize: '0.85rem', opacity: 0.7, fontWeight: '700' }}>SALDO RESTANTE</span>
+          <span style={{ fontSize: '1.6rem', fontWeight: '900', color: '#f87171' }}>{formatCurrency(remainingProject)}</span>
         </div>
       </div>
 
